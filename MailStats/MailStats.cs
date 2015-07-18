@@ -3,6 +3,7 @@
 using Xamarin.Forms;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace MailStats
 {
@@ -14,78 +15,100 @@ namespace MailStats
 		#endregion
 
 		bool isRunning;
+		string statusLabelText;
+		public string StatusLabelText {
+			get {
+				return statusLabelText;
+			}
+			set {
+				statusLabelText = value;
+				OnPropertyChanged ();
+			}
+		}
 		public bool IsRunning {
 			get {
 				return isRunning;
 			}
 			set {
 				isRunning = value;
-				OnPropertyChanged ("IsRunning");
+				OnPropertyChanged ();
 			}
 		}
 
-		public void OnPropertyChanged (string propertyName)
+		public void OnPropertyChanged ([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke (this, new PropertyChangedEventArgs(propertyName));
 		}
 	}
 
-	public class App : Application
+	public class MainPage : ContentPage
 	{
-		Label label;
 		MainPageViewModel model;
 
-		public App ()
+		public MainPage ()
 		{
 			model = new MainPageViewModel ();
+			BindingContext = model;
 
 			var button = new Button {
 				Text = "Fetch email"
 			};
 
-			label = new Label {
+			var label = new Label {
 				Text = "0 emails",
 				FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
 				HorizontalOptions = LayoutOptions.Center,
 				VerticalOptions = LayoutOptions.CenterAndExpand
 			};
-			
+			label.SetBinding (Label.TextProperty, "StatusLabelText");
+
 			var indicator = new ActivityIndicator ();
 			indicator.SetBinding (ActivityIndicator.IsRunningProperty, "IsRunning");
-				
+
 			button.Clicked += OnButtonClicked;
 
-			// The root page of your application
-			MainPage = new ContentPage {
-				Content = new StackLayout {
-					VerticalOptions = LayoutOptions.Center,
-					Children = {
-						button,
-						label,
-						indicator
-					}
+			Content = new StackLayout {
+				VerticalOptions = LayoutOptions.Center,
+				Children = {
+					button,
+					label,
+					indicator
 				}
 			};
-
-			MainPage.BindingContext = model;
 		}
+
+		Task syncingTask;
 
 		async void OnButtonClicked(object sender, EventArgs e)
 		{
 			try {
 				model.IsRunning = true;
-				await Task.Run (() => {
-					var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Split (',');
-					var email = emailpassword [0];
-					var password = emailpassword [1];
-					MainClass.FetchNewEmails (email, password, 30);
-					MainClass.CalculateStatistics (email, 30);
-				});
+				if (syncingTask == null || syncingTask.IsCompleted == true) 
+					syncingTask = Task.Run (() => {
+						var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Split (',');
+						var email = emailpassword [0];
+						var password = emailpassword [1];
+						model.StatusLabelText = "Fetching new emails...";
+						MainClass.FetchNewEmails (email, password, 30);
+						model.StatusLabelText = "Calculating statistics...";
+						MainClass.CalculateStatistics (email, 30);
+						model.StatusLabelText = "Done!";
+					});
+
+				await syncingTask;
 			} catch (Exception ex) {
 				Console.WriteLine (ex);
 			} finally {
 				model.IsRunning = false;
 			}
+		}
+	}
+
+	public class App : Application
+	{
+		public App ()
+		{
+			MainPage = new MailStats.MainPage ();
 		}
 
 		protected override void OnStart ()
