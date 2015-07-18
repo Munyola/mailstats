@@ -24,8 +24,7 @@
     <MtouchProfiling>true</MtouchProfiling>
     <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchUseRefCounting>true</MtouchUseRefCounting>
-    <MtouchI18n>
-    </MtouchI18n>
+    <MtouchI18n>mideast,other,rare,west</MtouchI18n>
     <MtouchLink>None</MtouchLink>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
@@ -63,6 +62,10 @@
     <MtouchProfiling>true</MtouchProfiling>
     <CodesignKey>iPhone Developer</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
+    <MtouchUseRefCounting>true</MtouchUseRefCounting>
+    <IpaPackageName>
+    </IpaPackageName>
+    <MtouchI18n>cjk,mideast,other,rare,west</MtouchI18n>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -93,6 +96,12 @@
     <Reference Include="MailKit">
       <HintPath>..\packages\MailKit.1.2.7.0\lib\xamarinios10\MailKit.dll</HintPath>
     </Reference>
+    <Reference Include="I18N.West" />
+    <Reference Include="I18N.Rare" />
+    <Reference Include="I18N.Other" />
+    <Reference Include="I18N.MidEast" />
+    <Reference Include="I18N.CJK" />
+    <Reference Include="I18N" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\Default.png" />

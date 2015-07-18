@@ -8,9 +8,32 @@ using MailKit;
 using MimeKit;
 
 using SQLite;
+using System.IO;
 
 namespace MailStats
 {
+
+	class Locations
+	{
+		public static string BaseDir = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Personal)).ToString();
+		public static readonly string LibDir = Path.Combine(BaseDir, "Library/");
+	}
+
+	class Database : SQLiteConnection
+	{
+		public static Database Main { get; } = new Database ();
+
+		public Database () : base (Path.Combine(Locations.LibDir, "emails.db"), true)
+		{
+			CreateTable<Email>();
+			CreateTable<SyncState>();
+		}
+
+		public int InsertOrReplaceAll (IEnumerable<Object> items)
+		{
+			return this.InsertAll(items, "OR REPLACE");
+		}
+	}
 
 	class SyncState
 	{
@@ -30,6 +53,7 @@ namespace MailStats
 		public DateTimeOffset Date { get; set; }	
 		string to;
 		string[] toSeparated;
+
 		public string To {
 			get {
 				return to;
@@ -53,7 +77,7 @@ namespace MailStats
 
 	}
 
-	public class MainClass
+	public static class MainClass
 	{
 		private static IMailFolder GetMailbox (string email, string password)
 		{
@@ -83,9 +107,9 @@ namespace MailStats
 		// - Leaderboard of people you email with the most, with median response times
 		// - Graph of # of emails sent/received by time of day
 		// - Per-person stats: # of emails, avg, min, max thread lengths.
-		public static void CalculateStatistics (SQLiteConnection db, string myEmailAddress, int daysAgo)
+		public static void CalculateStatistics (string myEmailAddress, int daysAgo)
 		{
-			var emails = db.Query<Email> ("SELECT * from Email;");
+			var emails = Database.Main.Query<Email> ("SELECT * from Email;");
 
 			var emailsById = new Dictionary<string, Email> ();
 			foreach (var email in emails) {
@@ -158,23 +182,15 @@ namespace MailStats
 			}
 		}
 
-		public static void FetchNewEmails (string myEmailAddress, string password, int daysAgo, SQLiteConnection db)
+		public static void FetchNewEmails (string myEmailAddress, string password, int daysAgo)
 		{
-			db.CreateTable<Email>();
-			db.CreateTable<SyncState>();
-
 			var fetchStart = DateTime.Now.AddDays (-daysAgo);
 			var fetchEnd = DateTime.Now;
 
-			SyncState syncState = null;
+			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
-			try {
-				var syncStates = db.Query<SyncState> ("SELECT * from SyncState where EmailAddress = ?", myEmailAddress);
-				syncState = syncStates[0];
-				if (fetchStart > syncState.DownloadStart && fetchStart < syncState.DownloadEnd)
-					fetchStart = syncState.DownloadEnd;
-			} catch {
-			}
+			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
+				fetchStart = syncState.DownloadEnd;
 
 			var start = DateTime.Now;
 			var inbox = GetMailbox (myEmailAddress, password);
@@ -193,16 +209,16 @@ namespace MailStats
 			var emails = inbox.Fetch (newUids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
 			Console.WriteLine("Fetched {0} email headers in {1} seconds", emails.Count, (DateTime.Now - start).TotalSeconds);
 
-			foreach (var mail in emails) {
-				var email = new Email ();
-				email.Id = mail.Envelope.MessageId;
-				email.Subject = mail.Envelope.Subject;
-				email.From = mail.Envelope.From.ToString ();
-				email.InReplyTo = mail.Envelope.InReplyTo;
-				email.Date = (DateTimeOffset) mail.Envelope.Date;
-				email.To = String.Join (",", mail.Envelope.To);
-				db.InsertOrReplace (email);
-			}
+			var newEmails = emails.Select (mail => new Email { 
+				Id = mail.Envelope.MessageId,
+				Subject = mail.Envelope.Subject,
+				From = mail.Envelope.From.ToString (),
+				InReplyTo = mail.Envelope.InReplyTo,
+				Date = (DateTimeOffset)mail.Envelope.Date,
+				To = String.Join (",", mail.Envelope.To)
+			});
+				
+			Database.Main.InsertOrReplaceAll (newEmails);
 
 			var newSyncState = new SyncState ();
 			newSyncState.EmailAddress = myEmailAddress;
@@ -210,7 +226,7 @@ namespace MailStats
 			if (syncState != null && syncState.DownloadStart < fetchStart)
 				newSyncState.DownloadStart = syncState.DownloadStart;
 			newSyncState.DownloadEnd = fetchEnd;
-			db.InsertOrReplace(newSyncState);
+			Database.Main.InsertOrReplace(newSyncState);
 		}
 
 	}
