@@ -4,6 +4,8 @@ using Xamarin.Forms;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace MailStats
 {
@@ -85,18 +87,19 @@ namespace MailStats
 				model.IsRunning = true;
 				if (syncingTask == null || syncingTask.IsCompleted == true) 
 					syncingTask = Task.Run (() => {
-						var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Split (',');
+						var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Trim().Split (',');
 						var email = emailpassword [0];
 						var password = emailpassword [1];
 						model.StatusLabelText = "Fetching new emails...";
 						MainClass.FetchNewEmails (email, password, 30);
 						model.StatusLabelText = "Calculating statistics...";
-						MainClass.CalculateStatistics (email, 30);
+						var d = MainClass.CalculateStatistics (email, 30);
 						model.StatusLabelText = "Done!";
 					});
 
 				await syncingTask;
 			} catch (Exception ex) {
+				model.StatusLabelText = "An error occurred";
 				Console.WriteLine (ex);
 			} finally {
 				model.IsRunning = false;

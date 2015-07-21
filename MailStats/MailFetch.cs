@@ -77,6 +77,23 @@ namespace MailStats
 
 	}
 
+	public class ScoreboardEntry 
+	{
+		public string Email {get; set;}
+		public int MyReplyCount {get; set;}
+		public int TheirReplyCount {get; set;}
+
+		public double MyMeanReply {get; set;}
+		public double MyMedianReply {get; set;}
+		public double MyMinReply {get; set;}
+		public double MyMaxReply {get; set;}
+
+		public double TheirMeanReply {get; set;}
+		public double TheirMedianReply {get; set;}
+		public double TheirMinReply {get; set;}
+		public double TheirMaxReply {get; set;}
+	}
+
 	public static class MainClass
 	{
 		private static IMailFolder GetMailbox (string email, string password)
@@ -107,7 +124,7 @@ namespace MailStats
 		// - Leaderboard of people you email with the most, with median response times
 		// - Graph of # of emails sent/received by time of day
 		// - Per-person stats: # of emails, avg, min, max thread lengths.
-		public static void CalculateStatistics (string myEmailAddress, int daysAgo)
+		public static Dictionary<string, ScoreboardEntry> CalculateStatistics (string myEmailAddress, int daysAgo)
 		{
 			var emails = Database.Main.Query<Email> ("SELECT * from Email;");
 
@@ -154,6 +171,8 @@ namespace MailStats
 				}
 			}
 
+			var scoreboardEntries = new Dictionary<string,ScoreboardEntry> ();
+
 			Console.WriteLine ("Emails w/ replies: {0}", emailsWithReplies);
 
 			Console.WriteLine ("My average reply time, based on {0} replies by me", myReplyTimes.Count);
@@ -166,6 +185,15 @@ namespace MailStats
 				select item;
 
 			foreach (var item in items) {
+				var score = new ScoreboardEntry ();
+				score.Email = item.Key;
+				score.MyReplyCount = item.Value.Count;
+				score.MyMeanReply = item.Value.Average ();
+				score.MyMinReply = item.Value.Min ();
+				score.MyMaxReply = item.Value.Max ();
+
+				scoreboardEntries [score.Email] = score;
+
 				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
 					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
 			}
@@ -177,9 +205,23 @@ namespace MailStats
 				select item;
 
 			foreach (var item in items) {
+				ScoreboardEntry entry = null;
+				scoreboardEntries.TryGetValue (item.Key, out entry);
+				if (entry == null) {
+					entry = new ScoreboardEntry ();
+					scoreboardEntries [item.Key] = entry;
+				}
+
+				entry.TheirReplyCount = item.Value.Count;
+				entry.MyMeanReply = item.Value.Average ();
+				entry.MyMinReply = item.Value.Min ();
+				entry.MyMaxReply = item.Value.Max ();
+
 				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
 					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
 			}
+
+			return scoreboardEntries;
 		}
 
 		public static void FetchNewEmails (string myEmailAddress, string password, int daysAgo)
