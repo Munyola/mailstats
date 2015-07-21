@@ -12,4 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MailStats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MailFetch.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)sketch.sketchcs" />
+  </ItemGroup>
 </Project>

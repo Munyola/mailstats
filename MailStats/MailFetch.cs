@@ -92,6 +92,14 @@ namespace MailStats
 		public int TheirMedianReply {get; set;}
 		public int TheirMinReply {get; set;}
 		public int TheirMaxReply {get; set;}
+
+		public static string ParseName(string email)
+		{
+			if (email.IndexOf ('\"') < 0)
+				return email;
+
+			return email.Split ('\"') [1];
+		}
 	}
 
 	public static class MainClass

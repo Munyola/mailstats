@@ -55,34 +55,70 @@ namespace MailStats
 		}
 	}
 
+	public class ScoreboardHeader : Grid
+	{
+		public Label email, count, mean;
+
+		public ScoreboardHeader ()
+		{
+
+			email = new Label {
+				Text = "Person"
+			};
+
+			count = new Label {
+				Text = "# replies"
+			};
+
+			mean = new Label {
+				Text = "Avg. mins"
+			};
+
+			Padding = new Thickness (10);
+			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
+			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
+			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
+
+			Children.Add (email, 0, 0);
+			Children.Add (count, 1, 0);
+			Children.Add (mean, 2, 0);
+		}
+	}
+
+
 	public class ScoreboardEntryCell : ViewCell
 	{
 		
+		protected Label email, count, mean, min, max;
+
 		public ScoreboardEntryCell ()
 		{
-			Label email, count, mean, min, max;
-
 			email = new Label ();
+			email.Text = "Person";
 			email.SetBinding (Label.TextProperty, "Email");
 
 			count = new Label ();
+			count.Text = "# replies";
 			count.SetBinding (Label.TextProperty, "TheirReplyCount");
 
 			mean = new Label ();
+			mean.Text = "Avg. mins";
 			mean.SetBinding (Label.TextProperty, "TheirMeanReply");
 
-			min = new Label ();
-			min.SetBinding (Label.TextProperty, "TheirMinReply");
-
-			max = new Label ();
-			max.SetBinding (Label.TextProperty, "TheirMaxReply");
-
-			View = new StackLayout {
-				Orientation = StackOrientation.Horizontal,
-				Children = {
-					email, count, mean, min, max
+			var grid = new Grid {
+				Padding = new Thickness (10),
+				ColumnDefinitions = {
+					new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) },
+					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) },
+					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) }
 				}
 			};
+
+			grid.Children.Add (email, 0, 0);
+			grid.Children.Add (count, 1, 0);
+			grid.Children.Add (mean, 2, 0);
+
+			View = grid;
 		}
 	}
 
@@ -112,7 +148,8 @@ namespace MailStats
 
 			var template = new DataTemplate (typeof(ScoreboardEntryCell));
 			var listView = new ListView {
-				ItemTemplate = template
+				ItemTemplate = template,
+				HeaderTemplate = new DataTemplate (typeof(ScoreboardHeader))
 			};
 
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
