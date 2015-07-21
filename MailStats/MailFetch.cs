@@ -83,15 +83,15 @@ namespace MailStats
 		public int MyReplyCount {get; set;}
 		public int TheirReplyCount {get; set;}
 
-		public double MyMeanReply {get; set;}
-		public double MyMedianReply {get; set;}
-		public double MyMinReply {get; set;}
-		public double MyMaxReply {get; set;}
+		public int MyMeanReply {get; set;}
+		public int MyMedianReply {get; set;}
+		public int MyMinReply {get; set;}
+		public int MyMaxReply {get; set;}
 
-		public double TheirMeanReply {get; set;}
-		public double TheirMedianReply {get; set;}
-		public double TheirMinReply {get; set;}
-		public double TheirMaxReply {get; set;}
+		public int TheirMeanReply {get; set;}
+		public int TheirMedianReply {get; set;}
+		public int TheirMinReply {get; set;}
+		public int TheirMaxReply {get; set;}
 	}
 
 	public static class MainClass
@@ -133,8 +133,6 @@ namespace MailStats
 				emailsById [email.Id] = email;
 			}
 
-			var emailsFromCount = new Dictionary<string, int> ();
-			var emailsToCount = new Dictionary<string, int> ();
 			var replyTimesByEmail = new Dictionary<string, List<int>> ();
 			var myReplyTimes = new List<int> ();
 			var myReplyTimesByEmail = new Dictionary<string, List<int>> ();
@@ -145,17 +143,6 @@ namespace MailStats
 
 				if (email.Date < DateTime.Now.AddDays (-daysAgo))
 					continue;
-
-				int val = 0;
-
-				emailsFromCount.TryGetValue (email.From, out val);
-				emailsFromCount[email.From] = val + 1;
-
-				if (email.From.Contains (myEmailAddress)) {
-					val = 0;
-					emailsToCount.TryGetValue (email.ToSeparated[0], out val);
-					emailsToCount[email.ToSeparated[0]] = val + 1;
-				}
 
 				if (email.InReplyTo != null && emailsById.ContainsKey(email.InReplyTo)) {
 					emailsWithReplies ++;
@@ -185,14 +172,14 @@ namespace MailStats
 				select item;
 
 			foreach (var item in items) {
-				var score = new ScoreboardEntry ();
-				score.Email = item.Key;
-				score.MyReplyCount = item.Value.Count;
-				score.MyMeanReply = item.Value.Average ();
-				score.MyMinReply = item.Value.Min ();
-				score.MyMaxReply = item.Value.Max ();
-
-				scoreboardEntries [score.Email] = score;
+//				var score = new ScoreboardEntry ();
+//				score.Email = item.Key;
+//				score.MyReplyCount = item.Value.Count;
+//				score.MyMeanReply = item.Value.Average ();
+//				score.MyMinReply = item.Value.Min ();
+//				score.MyMaxReply = item.Value.Max ();
+//
+//				scoreboardEntries [score.Email] = score;
 
 				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
 					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
@@ -206,16 +193,14 @@ namespace MailStats
 
 			foreach (var item in items) {
 				ScoreboardEntry entry = null;
-				scoreboardEntries.TryGetValue (item.Key, out entry);
-				if (entry == null) {
-					entry = new ScoreboardEntry ();
-					scoreboardEntries [item.Key] = entry;
-				}
-
+				entry = new ScoreboardEntry ();
+				entry.Email = item.Key;
 				entry.TheirReplyCount = item.Value.Count;
-				entry.MyMeanReply = item.Value.Average ();
-				entry.MyMinReply = item.Value.Min ();
-				entry.MyMaxReply = item.Value.Max ();
+				entry.TheirMeanReply = (int) item.Value.Average ();
+				entry.TheirMinReply = item.Value.Min ();
+				entry.TheirMaxReply = item.Value.Max ();
+				scoreboardEntries [item.Key] = entry;
+
 
 				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
 					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
@@ -231,6 +216,11 @@ namespace MailStats
 
 			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
+			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
+				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
+				return;
+			} 
+			
 			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
 				fetchStart = syncState.DownloadEnd;
 

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Collections;
+using System.Linq;
 
 namespace MailStats
 {
@@ -37,9 +38,51 @@ namespace MailStats
 			}
 		}
 
+		List<ScoreboardEntry> scoreBoard;
+		public List<ScoreboardEntry> ScoreBoard {
+			get {
+				return scoreBoard;
+			}
+			set {
+				scoreBoard = value;
+				OnPropertyChanged ();
+			}
+		}
+
 		public void OnPropertyChanged ([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke (this, new PropertyChangedEventArgs(propertyName));
+		}
+	}
+
+	public class ScoreboardEntryCell : ViewCell
+	{
+		
+		public ScoreboardEntryCell ()
+		{
+			Label email, count, mean, min, max;
+
+			email = new Label ();
+			email.SetBinding (Label.TextProperty, "Email");
+
+			count = new Label ();
+			count.SetBinding (Label.TextProperty, "TheirReplyCount");
+
+			mean = new Label ();
+			mean.SetBinding (Label.TextProperty, "TheirMeanReply");
+
+			min = new Label ();
+			min.SetBinding (Label.TextProperty, "TheirMinReply");
+
+			max = new Label ();
+			max.SetBinding (Label.TextProperty, "TheirMaxReply");
+
+			View = new StackLayout {
+				Orientation = StackOrientation.Horizontal,
+				Children = {
+					email, count, mean, min, max
+				}
+			};
 		}
 	}
 
@@ -67,16 +110,24 @@ namespace MailStats
 			var indicator = new ActivityIndicator ();
 			indicator.SetBinding (ActivityIndicator.IsRunningProperty, "IsRunning");
 
-			button.Clicked += OnButtonClicked;
+			var template = new DataTemplate (typeof(ScoreboardEntryCell));
+			var listView = new ListView {
+				ItemTemplate = template
+			};
+
+			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
 
 			Content = new StackLayout {
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
 					button,
 					label,
-					indicator
+					indicator,
+					listView
 				}
 			};
+
+			button.Clicked += OnButtonClicked;
 		}
 
 		Task syncingTask;
@@ -94,6 +145,7 @@ namespace MailStats
 						MainClass.FetchNewEmails (email, password, 30);
 						model.StatusLabelText = "Calculating statistics...";
 						var d = MainClass.CalculateStatistics (email, 30);
+						model.ScoreBoard = d.Select(X => X.Value).ToList();
 						model.StatusLabelText = "Done!";
 					});
 
