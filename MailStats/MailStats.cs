@@ -38,8 +38,8 @@ namespace MailStats
 			}
 		}
 
-		List<ScoreboardEntry> scoreBoard;
-		public List<ScoreboardEntry> ScoreBoard {
+		List<EmailData> scoreBoard;
+		public List<EmailData> ScoreBoard {
 			get {
 				return scoreBoard;
 			}
@@ -67,17 +67,19 @@ namespace MailStats
 			};
 
 			count = new Label {
-				Text = "# replies"
+				Text = "Count",
+				XAlign = TextAlignment.Center
 			};
 
 			mean = new Label {
-				Text = "Avg. mins"
+				Text = "Reply time",
+				XAlign = TextAlignment.Center
 			};
 
 			Padding = new Thickness (10);
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
-			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
+			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) });
 
 			Children.Add (email, 0, 0);
 			Children.Add (count, 1, 0);
@@ -95,22 +97,24 @@ namespace MailStats
 		{
 			email = new Label ();
 			email.Text = "Person";
-			email.SetBinding (Label.TextProperty, "Email");
+			email.SetBinding (Label.TextProperty, "Name");
 
 			count = new Label ();
 			count.Text = "# replies";
-			count.SetBinding (Label.TextProperty, "TheirReplyCount");
+			count.XAlign = TextAlignment.End;
+			count.SetBinding (Label.TextProperty, "ReplyTimesCount");
 
 			mean = new Label ();
 			mean.Text = "Avg. mins";
-			mean.SetBinding (Label.TextProperty, "TheirMeanReply");
+			mean.XAlign = TextAlignment.End;
+			mean.SetBinding (Label.TextProperty, "ReplyTimesAverageString");
 
 			var grid = new Grid {
 				Padding = new Thickness (10),
 				ColumnDefinitions = {
 					new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) },
 					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) },
-					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) }
+					new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) }
 				}
 			};
 
@@ -158,8 +162,8 @@ namespace MailStats
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
 					button,
-					label,
 					indicator,
+					new ScoreboardHeader(),
 					listView
 				}
 			};
@@ -181,8 +185,8 @@ namespace MailStats
 						model.StatusLabelText = "Fetching new emails...";
 						MainClass.FetchNewEmails (email, password, 30);
 						model.StatusLabelText = "Calculating statistics...";
-						var d = MainClass.CalculateStatistics (email, 30);
-						model.ScoreBoard = d.Select(X => X.Value).ToList();
+						var emailData = MainClass.CalculateStatistics (email, 30);
+						model.ScoreBoard = emailData.Where(X => X.Value.ReplyTimesMinutes.Count > 0).Select(X => X.Value).Where(X => X.ReplyTimesCount > 2).OrderBy(X => X.ReplyTimesAverage).ToList();
 						model.StatusLabelText = "Done!";
 					});
 

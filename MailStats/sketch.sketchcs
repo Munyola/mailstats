@@ -6,17 +6,14 @@
 </Manifest>
 ```
 ```csharp
-Func<string,string> ParseString = (email) =>{
+Func<string,string> ParseString = (email) => {
 	if (email.IndexOf ('\"') < 0)
 		return email;
-	return email.Split ('\"', StringSplitOptions.RemoveEmpty) [1];
+	return email.Split ('\"') [1];
 }
 
 ParseString("\"James Clancey\" <clancey@clancey.usa>");
 ParseString("nat@nat.org");
-
-var foo = "x";
-
 
 ```
 

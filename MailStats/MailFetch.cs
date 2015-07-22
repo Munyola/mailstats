@@ -43,6 +43,56 @@ namespace MailStats
 		public DateTime DownloadEnd { get; set; }
 	}
 
+	public class EmailData
+	{
+		public string Email {get;set;}
+		public string Name => ParseName (Email);
+
+		// Their responses to emails from me
+		public Dictionary<string,int> ReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
+		public double ReplyTimesAverage => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Average();
+		public string ReplyTimesAverageString => MinutesToString (ReplyTimesAverage);
+		public int ReplyTimesMin => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Min();
+		public int ReplyTimesMax => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Max();
+		public int ReplyTimesCount => ReplyTimesMinutes.Count;
+
+		// My responses to emails from them
+		public Dictionary<string,int> MyReplyTimes { get; set; } = new Dictionary<string,int>();
+		public double MyReplyTimesAverage => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Average();
+		public string MyReplyTimesAverageString => MinutesToString (MyReplyTimesAverage);
+		public int MyReplyTimesMin => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Min();
+		public int MyReplyTimesMax => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Max();
+		public int MyReplyTimesCount => MyReplyTimes.Count;
+
+		// Their responses to emails from other people
+		public Dictionary<string,int> OtherReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
+		public double OtherReplyTimesAverage => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Average();
+		public string OtherReplyTimesAverageString => MinutesToString (OtherReplyTimesAverage);
+		public int OtherReplyTimesMin => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Min();
+		public int OtherReplyTimesMax => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Max();
+		public int OtherReplyTimesCount => OtherReplyTimesMinutes.Count;
+
+		public static string ParseName(string email)
+		{
+			return email.IndexOf ('\"') < 0 ? email : email.Split ('\"') [1];
+		}
+
+		public override string ToString ()
+		{
+			return $"Email={Email}, Count={ReplyTimesMinutes.Count}, Reply Average={ReplyTimesAverage}";
+		}
+
+		public static string MinutesToString (double minutes)
+		{
+			var time = TimeSpan.FromMinutes(minutes);
+
+			if (time.Days > 0)
+				return $"{time:d\\dh\\h}";
+
+			return time.Hours > 0 ? $"{time:h\\hmm\\m}" : $"{time:m\\m}";
+		}
+	}
+
 	class Email
 	{
 		[PrimaryKey]
@@ -77,31 +127,6 @@ namespace MailStats
 
 	}
 
-	public class ScoreboardEntry 
-	{
-		public string Email {get; set;}
-		public int MyReplyCount {get; set;}
-		public int TheirReplyCount {get; set;}
-
-		public int MyMeanReply {get; set;}
-		public int MyMedianReply {get; set;}
-		public int MyMinReply {get; set;}
-		public int MyMaxReply {get; set;}
-
-		public int TheirMeanReply {get; set;}
-		public int TheirMedianReply {get; set;}
-		public int TheirMinReply {get; set;}
-		public int TheirMaxReply {get; set;}
-
-		public static string ParseName(string email)
-		{
-			if (email.IndexOf ('\"') < 0)
-				return email;
-
-			return email.Split ('\"') [1];
-		}
-	}
-
 	public static class MainClass
 	{
 		private static IMailFolder GetMailbox (string email, string password)
@@ -132,89 +157,59 @@ namespace MailStats
 		// - Leaderboard of people you email with the most, with median response times
 		// - Graph of # of emails sent/received by time of day
 		// - Per-person stats: # of emails, avg, min, max thread lengths.
-		public static Dictionary<string, ScoreboardEntry> CalculateStatistics (string myEmailAddress, int daysAgo)
+		public static Dictionary<string,EmailData> CalculateStatistics (string myEmailAddress, int daysAgo)
 		{
-			var emails = Database.Main.Query<Email> ("SELECT * from Email;");
+			var minDate = (DateTimeOffset) DateTime.Now.AddDays(-daysAgo);
+			var emails = Database.Main.Table<Email> ().Where (x => x.Date > minDate).ToList ();
 
 			var emailsById = new Dictionary<string, Email> ();
 			foreach (var email in emails) {
 				emailsById [email.Id] = email;
 			}
 
-			var replyTimesByEmail = new Dictionary<string, List<int>> ();
-			var myReplyTimes = new List<int> ();
-			var myReplyTimesByEmail = new Dictionary<string, List<int>> ();
-
-			int emailsWithReplies = 0;
+			var emailData = new Dictionary<string,EmailData> ();
 
 			foreach (var email in emails) {
 
 				if (email.Date < DateTime.Now.AddDays (-daysAgo))
 					continue;
 
-				if (email.InReplyTo != null && emailsById.ContainsKey(email.InReplyTo)) {
-					emailsWithReplies ++;
-					var orig = emailsById [email.InReplyTo];
-					int replyDelay = (int)(email.Date - orig.Date).TotalMinutes;
+				bool isMyEmail = false;
+				if (email.From.IndexOf (myEmailAddress, StringComparison.CurrentCultureIgnoreCase) > -1) {
+					isMyEmail = true;
+				}
 
-					if (email.From.Contains (myEmailAddress) && !orig.From.Contains (myEmailAddress)) {
-						myReplyTimes.Add (replyDelay);
-						AppendToEmailsDict (myReplyTimesByEmail, orig.From, replyDelay);
-					} else if (email.To.Contains (myEmailAddress) && orig.From.Contains (myEmailAddress)) {
-						AppendToEmailsDict (replyTimesByEmail, email.From, replyDelay);
+				Email repliedFrom = null;
+				if (!emailsById.TryGetValue (email.InReplyTo ?? "", out repliedFrom))
+					continue;
+
+				var key = isMyEmail ? repliedFrom.From : email.From;
+
+				EmailData data;
+				if (!emailData.TryGetValue (key, out data)) {
+					emailData [key] = data = new EmailData {
+						Email = key,
+					};
+				}
+
+				var replyTime = (int)(email.Date - repliedFrom.Date).TotalMinutes;
+
+				if (isMyEmail)
+					data.MyReplyTimes [email.Id] = replyTime;
+				else {
+					if (repliedFrom.From.IndexOf (myEmailAddress, StringComparison.CurrentCultureIgnoreCase) > -1) {
+						data.ReplyTimesMinutes [email.Id] = replyTime;
+					} else {
+						data.OtherReplyTimesMinutes [email.Id] = replyTime;
 					}
 				}
 			}
 
-			var scoreboardEntries = new Dictionary<string,ScoreboardEntry> ();
+			var items = emailData.Values.OrderBy(x=> x.ReplyTimesAverage).ToList();
 
-			Console.WriteLine ("Emails w/ replies: {0}", emailsWithReplies);
+			items.ForEach(Console.WriteLine);
 
-			Console.WriteLine ("My average reply time, based on {0} replies by me", myReplyTimes.Count);
-			Console.WriteLine ("\t{0} minutes - mean reply time (me to them)", myReplyTimes.Average ().ToString ("F"));
-
-			Console.WriteLine ("My average reply time, me to them");
-			var items = from item in myReplyTimesByEmail
-					where item.Value.Count > 2
-				orderby item.Value.Average() descending
-				select item;
-
-			foreach (var item in items) {
-//				var score = new ScoreboardEntry ();
-//				score.Email = item.Key;
-//				score.MyReplyCount = item.Value.Count;
-//				score.MyMeanReply = item.Value.Average ();
-//				score.MyMinReply = item.Value.Min ();
-//				score.MyMaxReply = item.Value.Max ();
-//
-//				scoreboardEntries [score.Email] = score;
-
-				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
-					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
-			}
-
-			Console.WriteLine ("Their average reply time, them to me");
-			items = from item in replyTimesByEmail
-					where item.Value.Count > 2
-				orderby item.Value.Average() descending
-				select item;
-
-			foreach (var item in items) {
-				ScoreboardEntry entry = null;
-				entry = new ScoreboardEntry ();
-				entry.Email = item.Key;
-				entry.TheirReplyCount = item.Value.Count;
-				entry.TheirMeanReply = (int) item.Value.Average ();
-				entry.TheirMinReply = item.Value.Min ();
-				entry.TheirMaxReply = item.Value.Max ();
-				scoreboardEntries [item.Key] = entry;
-
-
-				Console.WriteLine ("\t{0} - {1} emails, {2}m (mean), {3}m (min), {4}m (max)", 
-					item.Key, item.Value.Count, item.Value.Average ().ToString ("F"), item.Value.Min (), item.Value.Max ());
-			}
-
-			return scoreboardEntries;
+			return emailData;
 		}
 
 		public static void FetchNewEmails (string myEmailAddress, string password, int daysAgo)
@@ -254,7 +249,7 @@ namespace MailStats
 				Subject = mail.Envelope.Subject,
 				From = mail.Envelope.From.ToString (),
 				InReplyTo = mail.Envelope.InReplyTo,
-				Date = (DateTimeOffset)mail.Envelope.Date,
+				Date = (DateTimeOffset) mail.Envelope.Date,
 				To = String.Join (",", mail.Envelope.To)
 			});
 				
