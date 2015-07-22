@@ -9,6 +9,7 @@ using MimeKit;
 
 using SQLite;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MailStats
 {
@@ -212,17 +213,17 @@ namespace MailStats
 			return emailData;
 		}
 
-		public static void FetchNewEmails (string myEmailAddress, string password, int daysAgo)
+		public static async Task FetchNewEmails (string myEmailAddress, string password, int daysAgo)
 		{
 			var fetchStart = DateTime.Now.AddDays (-daysAgo);
 			var fetchEnd = DateTime.Now;
 
 			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
-			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
-				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
-				return;
-			} 
+			//if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
+			//	Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
+				//return;
+//			} 
 			
 			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
 				fetchStart = syncState.DownloadEnd;

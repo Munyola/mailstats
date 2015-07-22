@@ -57,26 +57,27 @@ namespace MailStats
 
 	public class ScoreboardHeader : Grid
 	{
-		public Label email, count, mean;
+		public Button email, count, mean;
 
 		public ScoreboardHeader ()
 		{
 
-			email = new Label {
-				Text = "Person"
+			email = new Button {
+				Text = "Person",
+				FontAttributes = FontAttributes.Bold
 			};
 
-			count = new Label {
+			count = new Button {
 				Text = "Count",
-				XAlign = TextAlignment.Center
+				FontAttributes = FontAttributes.Bold,
 			};
 
-			mean = new Label {
+			mean = new Button {
 				Text = "Reply time",
-				XAlign = TextAlignment.Center
+				FontAttributes = FontAttributes.Bold,
 			};
 
-			Padding = new Thickness (10);
+			Padding = new Thickness (5);
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) });
@@ -95,22 +96,25 @@ namespace MailStats
 
 		public ScoreboardEntryCell ()
 		{
+			var fontSize = 12;
+
 			email = new Label ();
-			email.Text = "Person";
+			email.FontSize = fontSize;
 			email.SetBinding (Label.TextProperty, "Name");
 
 			count = new Label ();
-			count.Text = "# replies";
+			count.FontSize = fontSize;
 			count.XAlign = TextAlignment.End;
+
 			count.SetBinding (Label.TextProperty, "ReplyTimesCount");
 
 			mean = new Label ();
-			mean.Text = "Avg. mins";
+			mean.FontSize = fontSize;
 			mean.XAlign = TextAlignment.End;
 			mean.SetBinding (Label.TextProperty, "ReplyTimesAverageString");
 
 			var grid = new Grid {
-				Padding = new Thickness (10),
+				Padding = new Thickness (5),
 				ColumnDefinitions = {
 					new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) },
 					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) },
@@ -153,6 +157,7 @@ namespace MailStats
 			var template = new DataTemplate (typeof(ScoreboardEntryCell));
 			var listView = new ListView {
 				ItemTemplate = template,
+				RowHeight = 36, 
 				HeaderTemplate = new DataTemplate (typeof(ScoreboardHeader))
 			};
 
@@ -182,25 +187,27 @@ namespace MailStats
 			try {
 				model.IsRunning = true;
 				if (syncingTask == null || syncingTask.IsCompleted == true) 
-					syncingTask = Task.Run (() => {
+					syncingTask = Task.Run (async () => {
 						var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Trim().Split (',');
 						var email = emailpassword [0];
 						var password = emailpassword [1];
-						model.StatusLabelText = "Fetching new emails...";
-						MainClass.FetchNewEmails (email, password, 30);
-						model.StatusLabelText = "Calculating statistics...";
-						var emailData = MainClass.CalculateStatistics (email, 30);
-						model.ScoreBoard = emailData.Where(X => X.Value.ReplyTimesMinutes.Count > 0).Select(X => X.Value).Where(X => X.ReplyTimesCount > 2).OrderBy(X => X.ReplyTimesAverage).ToList();
-						model.StatusLabelText = "Done!";
+
+						await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
+						await RefreshTable (email);
 					});
 
 				await syncingTask;
 			} catch (Exception ex) {
-				model.StatusLabelText = "An error occurred";
 				Console.WriteLine (ex);
 			} finally {
 				model.IsRunning = false;
 			}
+		}
+
+		async Task RefreshTable(string email)
+		{
+			var emailData = MainClass.CalculateStatistics (email, 180);
+			model.ScoreBoard = emailData.Where(X => X.Value.ReplyTimesMinutes.Count > 0).Select(X => X.Value).Where(X => X.ReplyTimesCount > 2).OrderBy(X => X.ReplyTimesAverage).ToList();
 		}
 	}
 
