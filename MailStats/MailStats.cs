@@ -161,19 +161,23 @@ namespace MailStats
 			Content = new StackLayout {
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
-					button,
 					indicator,
 					new ScoreboardHeader(),
 					listView
 				}
 			};
 
-			button.Clicked += OnButtonClicked;
+		}
+
+		protected override void OnAppearing ()
+		{
+			base.OnAppearing ();
+			Refresh();
 		}
 
 		Task syncingTask;
 
-		async void OnButtonClicked(object sender, EventArgs e)
+		async void Refresh()
 		{
 			try {
 				model.IsRunning = true;
