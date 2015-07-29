@@ -75,7 +75,6 @@ namespace MailStats
 
 		public ScoreboardHeader ()
 		{
-
 			email = new Button {
 				Text = "Person",
 				FontAttributes = FontAttributes.Bold
@@ -93,16 +92,20 @@ namespace MailStats
 
 			count.Clicked += (object sender, EventArgs e) => {
 				// FIXME: How do I access the VM from here?
-				Console.WriteLine ("Count clicked");
+				var model = (MainPageViewModel) BindingContext;
+				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.ReplyTimesCount).ToList();
+				Console.WriteLine("Count clicked");
 			};
 
 			email.Clicked += (object sender, EventArgs e) => {
-				// FIXME: How do I access the VM from here?
+				var model = (MainPageViewModel) BindingContext;
+				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.Name).ToList();
 				Console.WriteLine ("Email clicked");
 			};
 
 			mean.Clicked += (object sender, EventArgs e) => {
-				// FIXME: How do I access the VM from here?
+				var model = (MainPageViewModel) BindingContext;
+				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.ReplyTimesAverage).ToList();
 				Console.WriteLine ("Mean clicked");
 			};
 
