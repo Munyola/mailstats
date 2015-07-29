@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace MailStats
 {
@@ -17,17 +18,20 @@ namespace MailStats
 		public event PropertyChangedEventHandler PropertyChanged;
 		#endregion
 
-		bool isRunning;
-		string statusLabelText;
-		public string StatusLabelText {
+		string searchBarText;
+		public string SearchBarText {
 			get {
-				return statusLabelText;
+				return searchBarText;
 			}
 			set {
-				statusLabelText = value;
+				searchBarText = value;
+				var lowercase = value.ToLower ();
+				ScoreBoard = ScoreBoardMaster.Where (x => x.Email.ToLower ().Contains (lowercase)).ToList ();
 				OnPropertyChanged ();
 			}
 		}
+
+		bool isRunning;
 		public bool IsRunning {
 			get {
 				return isRunning;
@@ -35,6 +39,16 @@ namespace MailStats
 			set {
 				isRunning = value;
 				OnPropertyChanged ();
+			}
+		}
+
+		List<EmailData> scoreBoardMaster;
+		public List<EmailData> ScoreBoardMaster {
+			get {
+				return scoreBoardMaster;
+			}
+			set {
+				scoreBoardMaster = value;
 			}
 		}
 
@@ -77,6 +91,21 @@ namespace MailStats
 				FontAttributes = FontAttributes.Bold,
 			};
 
+			count.Clicked += (object sender, EventArgs e) => {
+				// FIXME: How do I access the VM from here?
+				Console.WriteLine ("Count clicked");
+			};
+
+			email.Clicked += (object sender, EventArgs e) => {
+				// FIXME: How do I access the VM from here?
+				Console.WriteLine ("Email clicked");
+			};
+
+			mean.Clicked += (object sender, EventArgs e) => {
+				// FIXME: How do I access the VM from here?
+				Console.WriteLine ("Mean clicked");
+			};
+
 			Padding = new Thickness (5);
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
@@ -86,21 +115,27 @@ namespace MailStats
 			Children.Add (count, 1, 0);
 			Children.Add (mean, 2, 0);
 		}
+
 	}
 
 
 	public class ScoreboardEntryCell : ViewCell
 	{
 		
-		protected Label email, count, mean, min, max;
+		protected Label name, email, count, mean, min, max;
 
 		public ScoreboardEntryCell ()
 		{
 			var fontSize = 12;
 
+			name = new Label ();
+			name.FontSize = fontSize;
+			name.SetBinding (Label.TextProperty, "Name");
+
 			email = new Label ();
-			email.FontSize = fontSize;
-			email.SetBinding (Label.TextProperty, "Name");
+			email.FontSize = fontSize - 2;
+			email.FontAttributes = FontAttributes.Italic;
+			email.SetBinding (Label.TextProperty, "EmailAddress");
 
 			count = new Label ();
 			count.FontSize = fontSize;
@@ -122,7 +157,15 @@ namespace MailStats
 				}
 			};
 
-			grid.Children.Add (email, 0, 0);
+			var stack = new StackLayout {
+				Spacing = 0, 
+				Children = {
+					name,
+					email
+				}
+			};
+
+			grid.Children.Add (stack, 0, 0);
 			grid.Children.Add (count, 1, 0);
 			grid.Children.Add (mean, 2, 0);
 
@@ -138,10 +181,6 @@ namespace MailStats
 		{
 			model = new MainPageViewModel ();
 			BindingContext = model;
-
-			var button = new Button {
-				Text = "Fetch email"
-			};
 
 			var label = new Label {
 				Text = "0 emails",
@@ -163,15 +202,21 @@ namespace MailStats
 
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
 
+			SearchBar searchBar = new SearchBar ();
+			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
+
 			Content = new StackLayout {
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
-					indicator,
+					searchBar,
 					new ScoreboardHeader(),
-					listView
+					listView,
+					indicator
 				}
 			};
 
+			// Accommodate iPhone status header
+			this.Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0);
 		}
 
 		protected override void OnAppearing ()
@@ -192,7 +237,7 @@ namespace MailStats
 						var email = emailpassword [0];
 						var password = emailpassword [1];
 
-						await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
+						//await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
 						await RefreshTable (email);
 					});
 
@@ -207,7 +252,9 @@ namespace MailStats
 		async Task RefreshTable(string email)
 		{
 			var emailData = MainClass.CalculateStatistics (email, 180);
-			model.ScoreBoard = emailData.Where(X => X.Value.ReplyTimesMinutes.Count > 0).Select(X => X.Value).Where(X => X.ReplyTimesCount > 2).OrderBy(X => X.ReplyTimesAverage).ToList();
+			model.ScoreBoardMaster = 
+				emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
+			model.ScoreBoard = model.ScoreBoardMaster;
 		}
 	}
 

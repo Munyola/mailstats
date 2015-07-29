@@ -48,6 +48,7 @@ namespace MailStats
 	{
 		public string Email {get;set;}
 		public string Name => ParseName (Email);
+		public string EmailAddress => ParseEmailAddress (Email);
 
 		// Their responses to emails from me
 		public Dictionary<string,int> ReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
@@ -76,6 +77,11 @@ namespace MailStats
 		public static string ParseName(string email)
 		{
 			return email.IndexOf ('\"') < 0 ? email : email.Split ('\"') [1];
+		}
+
+		public static string ParseEmailAddress(string email)
+		{
+			return email.IndexOf ('<') < 0 ? email : email.Split ('<') [1].Split('>') [0];
 		}
 
 		public override string ToString ()
