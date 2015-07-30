@@ -26,11 +26,11 @@ namespace MailStats
 			List<EmailData> list = ScoreBoardMaster;
 
 			if (CurrentSort == "mean")
-				list = ScoreBoardMaster.OrderBy(x => x.ReplyTimesAverage).ToList ();
+				list = ScoreBoardMaster.OrderBy (x => x.ReplyTimesAverage).ToList ();
 			else if (CurrentSort == "count")
-				list = ScoreBoardMaster.OrderBy(x => x.ReplyTimesCount).ToList ();
+				list = ScoreBoardMaster.OrderBy (x => x.ReplyTimesCount).ToList ();
 			else if (CurrentSort == "email")
-				list = ScoreBoardMaster.OrderBy(x => x.Name).ToList ();
+				list = ScoreBoardMaster.OrderBy (x => x.Name).ToList ();
 
 			if (searchBarText?.Length > 0) {
 				var lowercase = searchBarText.ToLower ();
@@ -50,8 +50,7 @@ namespace MailStats
 			}
 			set {
 				searchBarText = value;
-				var lowercase = value.ToLower ();
-				ScoreBoard = ScoreBoardMaster.Where (x => x.Email.ToLower ().Contains (lowercase)).ToList ();
+				FilterSort ();
 				OnPropertyChanged ();
 			}
 		}
@@ -115,7 +114,6 @@ namespace MailStats
 				FontAttributes = FontAttributes.Bold,
 			};
 
-			// FIXME: Make these sorts reversible
 			count.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
 				model.CurrentSort = "count";
