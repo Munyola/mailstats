@@ -18,6 +18,31 @@ namespace MailStats
 		public event PropertyChangedEventHandler PropertyChanged;
 		#endregion
 
+		public string CurrentSort = "mean";
+		public bool CurrentSortAscending = true;
+
+		public void FilterSort ()
+		{
+			List<EmailData> list = ScoreBoardMaster;
+
+			if (CurrentSort == "mean")
+				list = ScoreBoardMaster.OrderBy(x => x.ReplyTimesAverage).ToList ();
+			else if (CurrentSort == "count")
+				list = ScoreBoardMaster.OrderBy(x => x.ReplyTimesCount).ToList ();
+			else if (CurrentSort == "email")
+				list = ScoreBoardMaster.OrderBy(x => x.Name).ToList ();
+
+			if (searchBarText?.Length > 0) {
+				var lowercase = searchBarText.ToLower ();
+				list = list.Where (x => x.Email.ToLower ().Contains (lowercase)).ToList ();
+			}
+
+			if (!CurrentSortAscending)
+				list.Reverse ();
+
+			ScoreBoard = list;			
+		}
+
 		string searchBarText;
 		public string SearchBarText {
 			get {
@@ -90,26 +115,28 @@ namespace MailStats
 				FontAttributes = FontAttributes.Bold,
 			};
 
+			// FIXME: Make these sorts reversible
 			count.Clicked += (object sender, EventArgs e) => {
-				// FIXME: How do I access the VM from here?
 				var model = (MainPageViewModel) BindingContext;
-				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.ReplyTimesCount).ToList();
-				Console.WriteLine("Count clicked");
+				model.CurrentSort = "count";
+				model.CurrentSortAscending = ! model.CurrentSortAscending;
+				model.FilterSort ();
 			};
 
 			email.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.Name).ToList();
-				Console.WriteLine ("Email clicked");
+				model.CurrentSort = "email";
+				model.CurrentSortAscending = ! model.CurrentSortAscending;
+				model.FilterSort ();
 			};
 
 			mean.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.ScoreBoard = model.ScoreBoardMaster.OrderBy(x => x.ReplyTimesAverage).ToList();
-				Console.WriteLine ("Mean clicked");
+				model.CurrentSort = "mean";
+				model.CurrentSortAscending = ! model.CurrentSortAscending;
+				model.FilterSort ();
 			};
 
-			Padding = new Thickness (5);
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) });
@@ -118,9 +145,7 @@ namespace MailStats
 			Children.Add (count, 1, 0);
 			Children.Add (mean, 2, 0);
 		}
-
 	}
-
 
 	public class ScoreboardEntryCell : ViewCell
 	{
@@ -135,9 +160,9 @@ namespace MailStats
 			name.FontSize = fontSize;
 			name.SetBinding (Label.TextProperty, "Name");
 
+			// FIXME: Can't figure out how to make this light grey.
 			email = new Label ();
 			email.FontSize = fontSize - 2;
-			email.FontAttributes = FontAttributes.Italic;
 			email.SetBinding (Label.TextProperty, "EmailAddress");
 
 			count = new Label ();
