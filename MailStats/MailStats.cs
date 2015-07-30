@@ -208,14 +208,6 @@ namespace MailStats
 			model = new MainPageViewModel ();
 			BindingContext = model;
 
-			var label = new Label {
-				Text = "0 emails",
-				FontSize = Device.GetNamedSize(NamedSize.Medium, typeof(Label)),
-				HorizontalOptions = LayoutOptions.Center,
-				VerticalOptions = LayoutOptions.CenterAndExpand
-			};
-			label.SetBinding (Label.TextProperty, "StatusLabelText");
-
 			var indicator = new ActivityIndicator ();
 			indicator.SetBinding (ActivityIndicator.IsRunningProperty, "IsRunning");
 
@@ -263,7 +255,7 @@ namespace MailStats
 						var email = emailpassword [0];
 						var password = emailpassword [1];
 
-						//await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
+						await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
 						await RefreshTable (email);
 					});
 
@@ -280,7 +272,7 @@ namespace MailStats
 			var emailData = MainClass.CalculateStatistics (email, 180);
 			model.ScoreBoardMaster = 
 				emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
-			model.ScoreBoard = model.ScoreBoardMaster;
+			model.FilterSort ();
 		}
 	}
 
