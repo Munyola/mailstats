@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MailStats
+﻿namespace MailStats
 {
 	public class Constants
 	{

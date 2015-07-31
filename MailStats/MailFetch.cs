@@ -10,6 +10,7 @@ using MimeKit;
 using SQLite;
 using System.IO;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace MailStats
 {
@@ -140,9 +141,17 @@ namespace MailStats
 		{
 			var client = new ImapClient ();
 
+			var credentials = new NetworkCredential ("nat@xamarin.com", App.GoogleUser.AccessToken);
+
 			client.Connect ("imap.gmail.com", 993, true);
-			client.AuthenticationMechanisms.Remove ("XOAUTH");
-			client.Authenticate (email, password);
+			//client.AuthenticationMechanisms.Remove ("XOAUTH");
+			try {
+				client.Authenticate (credentials);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Got exception: #{0}", e);
+			}
 
 			var mailbox =  client.GetFolder ("[Gmail]/All Mail");
 			mailbox.Open (FolderAccess.ReadOnly);

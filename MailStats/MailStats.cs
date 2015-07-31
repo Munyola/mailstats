@@ -9,6 +9,8 @@ using System.Collections;
 using System.Linq;
 using System.Collections.ObjectModel;
 
+
+
 namespace MailStats
 {
 
@@ -319,20 +321,16 @@ namespace MailStats
 		public static Action SuccessfulLoginAction {
 			get {
 				return new Action (() => { 
-					_NavPage.Navigation.PopModalAsync ();					
-
-					if (IsLoggedIn) {
-						_NavPage.Navigation.InsertPageBefore (new MainPage (), _NavPage.Navigation.NavigationStack.First ());
-						_NavPage.Navigation.PopToRootAsync ();
-					}
+					Application.Current.MainPage = new MainPage();
 				});
 			}
 		}
 	
 		public App ()
 		{	
-			_NavPage = new NavigationPage (new LoginPage ());
-			MainPage = _NavPage;
+			//_NavPage = new NavigationPage (new LoginPage ());
+			//MainPage = _NavPage;
+			MainPage = new LoginPage();
 		}
 
 		protected override void OnStart ()
