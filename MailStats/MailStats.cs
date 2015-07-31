@@ -310,6 +310,8 @@ namespace MailStats
 	{
 		static NavigationPage _NavPage;
 
+		static public string AppName = "MailStats";
+
 		public static Page GetMainPage ()
 		{
 			var mainPage = new ProfilePage();
@@ -320,17 +322,29 @@ namespace MailStats
 		}
 
 		public static bool IsLoggedIn {
-			get { return !string.IsNullOrWhiteSpace(_Token); }
+			get { return !string.IsNullOrWhiteSpace(_AccessToken); }
 		}
 
-		static string _Token;
-		public static string Token {
-			get { return _Token; }
+		static string _AccessToken;
+		public static string AccessToken {
+			get { return _AccessToken; }
 		}
 
-		public static void SaveToken(string token)
+		static string _RefreshToken;
+		public static string RefreshToken {
+			get { return _RefreshToken; }
+		}
+
+		static string _Username;
+		public static string Username {
+			get { return _Username; }
+		}
+
+		public static void SaveTokens(string username, string access_token, string refresh_token)
 		{
-			_Token = token;
+			_Username = username;
+			_AccessToken = access_token;
+			_RefreshToken = refresh_token;
 		}
 
 		public static Action SuccessfulLoginAction

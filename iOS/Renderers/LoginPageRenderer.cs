@@ -24,16 +24,19 @@ namespace MailStats.iOS
 				new Uri ("urn:ietf:wg:oauth:2.0:oob\n"), // redirect URL
 				new Uri ("https://accounts.google.com/o/oauth2/token") // access token URL
 			);
+			auth.AllowCancel = true;
+			auth.ShowUIErrors = false;
+			auth.ClearCookiesBeforeLogin = false;
 
-			auth.Completed += (sender, eventArgs) => {
+			auth.Completed += (sender, e) => {
+
 				// We presented the UI, so it's up to us to dimiss it on iOS.
 				App.SuccessfulLoginAction.Invoke();
+				if (e.IsAuthenticated) {
+					App.SaveTokens(e.Account.Username, e.Account.Properties["access_token"], e.Account.Properties["refresh_token"]);
 
-				if (eventArgs.IsAuthenticated) {
-					// Use eventArgs.Account to do wonderful things
-					App.SaveToken(eventArgs.Account.Properties["access_token"]);
 				} else {
-					// The user cancelled
+					// FIXME: what do we do?
 				}
 			};
 
