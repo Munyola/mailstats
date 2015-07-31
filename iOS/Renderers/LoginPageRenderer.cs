@@ -14,11 +14,12 @@ namespace MailStats.iOS
 		{
 			base.ViewDidAppear (animated);
 
+			Console.WriteLine ("In login page renderer....");
 
 			var auth = new OAuth2Authenticator (
 				"900358175438-rrk0rqp76dd5l24jsevmunjm1277an50.apps.googleusercontent.com", // your OAuth2 client id
 				"W6CsgvukJ3YxWrhSs98B7Q22", // client secret
-				"gmail.readonly", // the scopes for the particular API you're accessing, delimited by "+" symbols
+				"https://www.googleapis.com/auth/gmail.readonly", // the scopes for the particular API you're accessing, delimited by "+" symbols
 				new Uri ("https://accounts.google.com/o/oauth2/auth"), // the auth URL for the service
 				new Uri ("urn:ietf:wg:oauth:2.0:oob\n"), // redirect URL
 				new Uri ("https://accounts.google.com/o/oauth2/token") // access token URL

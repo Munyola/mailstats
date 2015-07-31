@@ -312,7 +312,7 @@ namespace MailStats
 
 		public static Page GetMainPage ()
 		{
-			var mainPage = new MainPage();
+			var mainPage = new ProfilePage();
 
 			_NavPage = new NavigationPage(mainPage);
 
