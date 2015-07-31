@@ -2,10 +2,12 @@
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.iOS;
 using Xamarin.Auth;
+using MailStats;
+using MailStats.iOS;
 
+[assembly: ExportRendererAttribute (typeof (LoginPage), typeof (LoginPageRenderer))]
 namespace MailStats.iOS
 {
-	[assembly: ExportRendererAttribute (typeof (LoginPage), typeof (LoginPageRenderer))]
 	public class LoginPageRenderer : PageRenderer
 	{
 		public override void ViewDidAppear (bool animated)
