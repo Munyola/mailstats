@@ -306,59 +306,45 @@ namespace MailStats
 
 	}
 
+	public class GoogleUser 
+	{
+		public string Email { get; set; }
+		public string AccessToken { get; set; }
+		public string RefreshToken { get; set; }
+	}
+
 	public class App : Application
 	{
 		static NavigationPage _NavPage;
+		public static string AppName { get { return "MailStats"; } }
+		public static GoogleUser GoogleUser { get; set; }
 
-		static public string AppName = "MailStats";
-
-		public static Page GetMainPage ()
-		{
-			var mainPage = new ProfilePage();
-
-			_NavPage = new NavigationPage(mainPage);
-
-			return _NavPage;
+		public static bool IsLoggedIn { 
+			get { 
+				if (GoogleUser != null)
+					return !string.IsNullOrWhiteSpace (GoogleUser.Email);
+				else
+					return false;
+			} 
 		}
 
-		public static bool IsLoggedIn {
-			get { return !string.IsNullOrWhiteSpace(_AccessToken); }
-		}
-
-		static string _AccessToken;
-		public static string AccessToken {
-			get { return _AccessToken; }
-		}
-
-		static string _RefreshToken;
-		public static string RefreshToken {
-			get { return _RefreshToken; }
-		}
-
-		static string _Username;
-		public static string Username {
-			get { return _Username; }
-		}
-
-		public static void SaveTokens(string username, string access_token, string refresh_token)
-		{
-			_Username = username;
-			_AccessToken = access_token;
-			_RefreshToken = refresh_token;
-		}
-
-		public static Action SuccessfulLoginAction
-		{
+		public static Action SuccessfulLoginAction {
 			get {
-				return new Action (() => {
-					_NavPage.Navigation.PopModalAsync();
+				return new Action (() => { 
+					_NavPage.Navigation.PopModalAsync ();					
+
+					if (IsLoggedIn) {
+						_NavPage.Navigation.InsertPageBefore (new MainPage (), _NavPage.Navigation.NavigationStack.First ());
+						_NavPage.Navigation.PopToRootAsync ();
+					}
 				});
 			}
 		}
 	
 		public App ()
-		{
-			MainPage = GetMainPage (); //new MailStats.MainPage ();
+		{	
+			_NavPage = new NavigationPage(new ProfilePage());
+			MainPage = _NavPage;
 		}
 
 		protected override void OnStart ()

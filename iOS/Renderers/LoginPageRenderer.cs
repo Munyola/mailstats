@@ -16,13 +16,16 @@ namespace MailStats.iOS
 
 			Console.WriteLine ("In login page renderer....");
 
+			var accounts = AccountStore.Create ().FindAccountsForService (App.AppName);
+			//var account = accounts.FirstOrDefault ();
+
 			var auth = new OAuth2Authenticator (
-				"900358175438-rrk0rqp76dd5l24jsevmunjm1277an50.apps.googleusercontent.com", // your OAuth2 client id
-				"W6CsgvukJ3YxWrhSs98B7Q22", // client secret
-				"https://www.googleapis.com/auth/gmail.readonly", // the scopes for the particular API you're accessing, delimited by "+" symbols
-				new Uri ("https://accounts.google.com/o/oauth2/auth"), // the auth URL for the service
-				new Uri ("urn:ietf:wg:oauth:2.0:oob\n"), // redirect URL
-				new Uri ("https://accounts.google.com/o/oauth2/token") // access token URL
+				MailStats.Constants.ClientId,
+				MailStats.Constants.ClientSecret,
+				Constants.Scope,
+				new Uri (Constants.AuthorizeUrl), // the auth URL for the service
+				new Uri (Constants.RedirectUrl), // redirect URL
+				new Uri (Constants.AccessTokenUrl) // access token URL
 			);
 			auth.AllowCancel = true;
 			auth.ShowUIErrors = false;
@@ -32,9 +35,13 @@ namespace MailStats.iOS
 
 				// We presented the UI, so it's up to us to dimiss it on iOS.
 				App.SuccessfulLoginAction.Invoke();
-				if (e.IsAuthenticated) {
-					App.SaveTokens(e.Account.Username, e.Account.Properties["access_token"], e.Account.Properties["refresh_token"]);
 
+				if (e.IsAuthenticated) {
+					var user = new GoogleUser();
+					user.Email = e.Account.Username;
+					user.AccessToken = e.Account.Properties["access_token"];
+					user.RefreshToken = e.Account.Properties["refresh_token"];
+					App.GoogleUser = user;
 				} else {
 					// FIXME: what do we do?
 				}
