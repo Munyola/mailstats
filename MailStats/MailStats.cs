@@ -282,7 +282,7 @@ namespace MailStats
 		public ProfilePage ()
 		{
 			Content = new Label () {
-				Text = "Profile Page", 
+				Text = "Placeholder Page", 
 				VerticalOptions = LayoutOptions.CenterAndExpand,
 				HorizontalOptions = LayoutOptions.CenterAndExpand, 
 			};
@@ -308,7 +308,7 @@ namespace MailStats
 
 	public class GoogleUser 
 	{
-		public string Email { get; set; }
+		// FIXME: Should get their email address too
 		public string AccessToken { get; set; }
 		public string RefreshToken { get; set; }
 	}
@@ -322,7 +322,7 @@ namespace MailStats
 		public static bool IsLoggedIn { 
 			get { 
 				if (GoogleUser != null)
-					return !string.IsNullOrWhiteSpace (GoogleUser.Email);
+					return !string.IsNullOrWhiteSpace (GoogleUser.AccessToken);
 				else
 					return false;
 			} 

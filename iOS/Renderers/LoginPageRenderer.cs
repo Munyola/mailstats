@@ -33,15 +33,14 @@ namespace MailStats.iOS
 
 			auth.Completed += (sender, e) => {
 
-				// We presented the UI, so it's up to us to dimiss it on iOS.
-				App.SuccessfulLoginAction.Invoke();
-
 				if (e.IsAuthenticated) {
 					var user = new GoogleUser();
-					user.Email = e.Account.Username;
 					user.AccessToken = e.Account.Properties["access_token"];
 					user.RefreshToken = e.Account.Properties["refresh_token"];
 					App.GoogleUser = user;
+
+					// We presented the UI, so it's up to us to dimiss it on iOS.
+					App.SuccessfulLoginAction.Invoke();
 				} else {
 					// FIXME: what do we do?
 				}
