@@ -214,7 +214,7 @@ namespace MailStats
 
 			var items = emailData.Values.OrderBy(x=> x.ReplyTimesAverage).ToList();
 
-			items.ForEach(Console.WriteLine);
+			//items.ForEach(Console.WriteLine);
 
 			return emailData;
 		}
@@ -226,10 +226,10 @@ namespace MailStats
 
 			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
-			//if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
-			//	Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
-				//return;
-//			} 
+			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
+				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
+				return;
+			} 
 			
 			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
 				fetchStart = syncState.DownloadEnd;
