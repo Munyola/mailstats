@@ -200,6 +200,18 @@ namespace MailStats
 		}
 	}
 
+	public class BaseContentPage : ContentPage
+	{
+		protected override void OnAppearing ()
+		{
+			base.OnAppearing ();
+
+			if (!App.IsLoggedIn) {
+				Navigation.PushModalAsync(new LoginPage());
+			}
+		}
+	}
+
 	public class MainPage : ContentPage
 	{
 		MainPageViewModel model;
@@ -277,30 +289,6 @@ namespace MailStats
 		}
 	}
 
-	public class ProfilePage : BaseContentPage
-	{
-		public ProfilePage ()
-		{
-			Content = new Label () {
-				Text = "Placeholder Page", 
-				VerticalOptions = LayoutOptions.CenterAndExpand,
-				HorizontalOptions = LayoutOptions.CenterAndExpand, 
-			};
-		}
-	}
-
-	public class BaseContentPage : ContentPage
-	{
-		protected override void OnAppearing ()
-		{
-			base.OnAppearing ();
-
-			if (!App.IsLoggedIn) {
-				Navigation.PushModalAsync(new LoginPage());
-			}
-		}
-	}
-
 	public class LoginPage : ContentPage
 	{
 
@@ -343,7 +331,7 @@ namespace MailStats
 	
 		public App ()
 		{	
-			_NavPage = new NavigationPage(new ProfilePage());
+			_NavPage = new NavigationPage (new LoginPage ());
 			MainPage = _NavPage;
 		}
 
