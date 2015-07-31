@@ -18,19 +18,20 @@ namespace MailStats
 		public event PropertyChangedEventHandler PropertyChanged;
 		#endregion
 
-		public string CurrentSort = "mean";
+		public string CurrentSort = "ReplyTimesAverage";
 		public bool CurrentSortAscending = true;
 
+		static List<EmailData> SortEmails(List<EmailData> emails, string property)
+		{
+			var propertyInfo = typeof(EmailData).GetProperty(property);    
+			return emails.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
+		}
+			
 		public void FilterSort ()
 		{
 			List<EmailData> list = ScoreBoardMaster;
 
-			if (CurrentSort == "mean")
-				list = ScoreBoardMaster.OrderBy (x => x.ReplyTimesAverage).ToList ();
-			else if (CurrentSort == "count")
-				list = ScoreBoardMaster.OrderBy (x => x.ReplyTimesCount).ToList ();
-			else if (CurrentSort == "email")
-				list = ScoreBoardMaster.OrderBy (x => x.Name).ToList ();
+			list = SortEmails (ScoreBoardMaster, CurrentSort);
 
 			if (searchBarText?.Length > 0) {
 				var lowercase = searchBarText.ToLower ();
@@ -116,21 +117,21 @@ namespace MailStats
 
 			count.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.CurrentSort = "count";
+				model.CurrentSort = "ReplyTimesCount";
 				model.CurrentSortAscending = ! model.CurrentSortAscending;
 				model.FilterSort ();
 			};
 
 			email.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.CurrentSort = "email";
+				model.CurrentSort = "Name";
 				model.CurrentSortAscending = ! model.CurrentSortAscending;
 				model.FilterSort ();
 			};
 
 			mean.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.CurrentSort = "mean";
+				model.CurrentSort = "ReplyTimesAverage";
 				model.CurrentSortAscending = ! model.CurrentSortAscending;
 				model.FilterSort ();
 			};
@@ -276,11 +277,74 @@ namespace MailStats
 		}
 	}
 
+	public class ProfilePage : BaseContentPage
+	{
+		public ProfilePage ()
+		{
+			Content = new Label () {
+				Text = "Profile Page", 
+				VerticalOptions = LayoutOptions.CenterAndExpand,
+				HorizontalOptions = LayoutOptions.CenterAndExpand, 
+			};
+		}
+	}
+
+	public class BaseContentPage : ContentPage
+	{
+		protected override void OnAppearing ()
+		{
+			base.OnAppearing ();
+
+			if (!App.IsLoggedIn) {
+				Navigation.PushModalAsync(new LoginPage());
+			}
+		}
+	}
+
+	public class LoginPage : ContentPage
+	{
+
+	}
+
 	public class App : Application
 	{
+		static NavigationPage _NavPage;
+
+		public static Page GetMainPage ()
+		{
+			var profilePage = new ProfilePage();
+
+			_NavPage = new NavigationPage(profilePage);
+
+			return _NavPage;
+		}
+
+		public static bool IsLoggedIn {
+			get { return !string.IsNullOrWhiteSpace(_Token); }
+		}
+
+		static string _Token;
+		public static string Token {
+			get { return _Token; }
+		}
+
+		public static void SaveToken(string token)
+		{
+			_Token = token;
+		}
+
+		public static Action SuccessfulLoginAction
+		{
+			get {
+				return new Action (() => {
+					_NavPage.Navigation.PopModalAsync();
+				});
+			}
+		}
+	
 		public App ()
 		{
-			MainPage = new MailStats.MainPage ();
+			MainPage = GetMainPage (); //new MailStats.MainPage ();
 		}
 
 		protected override void OnStart ()
