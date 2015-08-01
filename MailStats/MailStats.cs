@@ -171,12 +171,12 @@ namespace MailStats
 			count.FontSize = fontSize;
 			count.XAlign = TextAlignment.End;
 
-			count.SetBinding (Label.TextProperty, "ReplyTimesCount");
+			count.SetBinding (Label.TextProperty, "EmailCount");
 
 			mean = new Label ();
 			mean.FontSize = fontSize;
 			mean.XAlign = TextAlignment.End;
-			mean.SetBinding (Label.TextProperty, "ReplyTimesAverageString");
+			mean.SetBinding (Label.TextProperty, "MeanReplyTimeString");
 
 			var grid = new Grid {
 				Padding = new Thickness (5),
@@ -287,8 +287,15 @@ namespace MailStats
 		async Task RefreshTable()
 		{
 			var emailData = CalcStats.CalculateStatistics (Constants.DaysAgo);
-			model.ScoreBoardMaster = null; // FIXME
-			//	emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
+			var toMeData = 
+				emailData.Where (x => x.Value.ReplyTimesCount > 2).Select (x => x.Value).OrderBy (x => x.ReplyTimesAverage).
+				Select(x => new EmailScoreEntry(x, false)).ToList ();
+			var fromMeData = 
+				emailData.Where (x => x.Value.MyReplyTimesCount > 0).Select (X => X.Value).OrderBy (X => X.MyReplyTimesAverage).
+				Select(x => new EmailScoreEntry(x, true)).ToList ();
+
+			model.ScoreBoardMaster = toMeData;
+						
 			model.FilterSort ();
 		}
 	}

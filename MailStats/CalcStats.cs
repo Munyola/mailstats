@@ -10,8 +10,8 @@ namespace MailStats
 		public string Email {get;set;}
 		public string Name => ParseName (Email);
 		public string EmailAddress => ParseEmailAddress (Email);
-		public int EmailCount;
-		public double MeanReplyTime;
+		public int EmailCount {get; set;}
+		public double MeanReplyTime { get; set; }
 		public string MeanReplyTimeString => MinutesToString (MeanReplyTime);
 
 		public static string MinutesToString (double minutes)
@@ -32,6 +32,19 @@ namespace MailStats
 		public static string ParseEmailAddress(string email)
 		{
 			return email.IndexOf ('<') < 0 ? email : email.Split ('<') [1].Split('>') [0];
+		}
+
+		public EmailScoreEntry(EmailData data, bool from_me)
+		{
+			this.Email = data.Email;
+
+			if (from_me) {
+				this.EmailCount = data.MyReplyTimesCount;
+				this.MeanReplyTime = data.MyReplyTimesAverage;
+			} else {
+				this.EmailCount = data.ReplyTimesCount;
+				this.MeanReplyTime = data.ReplyTimesAverage;
+			}
 		}
 	}
 
@@ -68,7 +81,7 @@ namespace MailStats
 
 	public class CalcStats 
 	{
-
+		// FIXME only count replies, not forwards
 		public static Dictionary<string,EmailData> CalculateStatistics (int daysAgo)
 		{
 			var myEmailAddress = App.GoogleUser.Email;
