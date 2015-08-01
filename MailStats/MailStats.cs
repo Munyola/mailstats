@@ -12,6 +12,7 @@ using SimpleAuth;
 using SimpleAuth.OAuth;
 
 using Xamarin.Auth;
+using SimpleAuth.Providers;
 
 namespace MailStats
 {
@@ -295,43 +296,39 @@ namespace MailStats
 
 	public class LoginPage : ContentPage
 	{
-//		public LoginPage ()
-//		{
-//			OAuthApi api;
-//
-//			api = new OAuthApi("google", new OAuthAuthenticator(
-//				Constants.AuthorizeUrl,
-//				Constants.AccessTokenUrl,
-//				Constants.RedirectUrl,
-//				Constants.ClientId,
-//				Constants.ClientSecret));
-//			var button = new Button
-//			{
-//				Text = "Login",
-//			};
-//
-//			button.Clicked += async (sender, args) =>
-//			{
-//				try
-//				{
-//					var account = await api.Authenticate();
-//					Console.WriteLine(account.Identifier);
-//					App.SuccessfulLoginAction.Invoke ();
-//				}
-//				catch (TaskCanceledException ex)
-//				{
-//					Console.WriteLine("Canceled");
-//				}
-//			};
-//
-//			// The root page of your application
-//			Content = new StackLayout {
-//				VerticalOptions = LayoutOptions.Center,
-//				Children = {
-//					button
-//				}
-//			};
-//		}
+		OAuthApi api;
+
+		public LoginPage ()
+		{
+			api = new GoogleApi("google", Constants.ClientId, Constants.ClientSecret)
+			{
+				Scopes = Constants.Scopes
+			};
+			var button = new Button
+			{
+				Text = "Login",
+			};
+			button.Clicked += async (sender, args) =>
+			{
+				try
+				{
+					var account = await api.Authenticate();
+					Console.WriteLine(account.Identifier);
+				}
+				catch (TaskCanceledException ex)
+				{
+					Console.WriteLine("Canceled");
+				}
+			};
+
+			// The root page of your application
+			Content = new StackLayout {
+				VerticalOptions = LayoutOptions.Center,
+				Children = {
+					button
+				}
+			};
+		}
 	}
 
 	public class GoogleUser 

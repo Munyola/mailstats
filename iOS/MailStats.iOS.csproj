@@ -112,7 +112,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web.Services" />
     <Reference Include="SimpleAuth.iOS">
-      <HintPath>..\SimpleAuth\src\SimpleAuth.iOS\obj\Debug\SimpleAuth.iOS.dll</HintPath>
+      <HintPath>..\References\SimpleAuth.iOS.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
