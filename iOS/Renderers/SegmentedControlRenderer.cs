@@ -21,10 +21,15 @@ namespace SegmentedControl.iOS
 			for (var i = 0; i < e.NewElement.Children.Count; i++) {
 				segmentedControl.InsertSegment (e.NewElement.Children [i].Text, i, false);
 			}
-
 			segmentedControl.ValueChanged += (sender, eventArgs) => {
-				e.NewElement.SelectedValue = segmentedControl.TitleAt(segmentedControl.SelectedSegment);
+				var seg = sender as UISegmentedControl;
+				e.NewElement.SelectedValue = seg.TitleAt(segmentedControl.SelectedSegment);
 			};
+			e.NewElement.ValueChanged += async (object sender, EventArgs ev) => {
+				var seg = sender as SegmentedControl;
+				segmentedControl.SelectedSegment = seg.SelectedIndex;
+			};
+			segmentedControl.SelectedSegment = e.NewElement.SelectedIndex;
 
 			SetNativeControl (segmentedControl);
 		}
