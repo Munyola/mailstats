@@ -87,6 +87,9 @@ namespace MailStats
 
 		public void FilterSort ()
 		{
+			if (ScoreBoardMaster == null)
+				return;
+			
 			var list = SortEmails (ScoreBoardMaster, CurrentSort);
 
 			if (searchBarText?.Length > 0) {
@@ -235,11 +238,8 @@ namespace MailStats
 				Text = "To Me"
 			};
 
-			// FIXME: how to set a default?
-
 			var toMe = new SegmentedControlOption ();
 			toMe.Text = "To Me";
-			toMe.Focus (); // FIXME: This doesn't work to make this the default option
 
 			var segment = new SegmentedControl.SegmentedControl {
 				Children = {
@@ -281,6 +281,8 @@ namespace MailStats
 					listView
 				}
 			};
+
+			segment.SelectedValue = "To Me";
 
 			// Accommodate iPhone status header
 			this.Padding = new Thickness(0, 
