@@ -12,8 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)MailStats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MailFetch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)sketch.sketchcs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GoogleApiService.cs" />
   </ItemGroup>
 </Project>

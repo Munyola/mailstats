@@ -5,11 +5,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
-using System.Collections;
 using System.Linq;
-using System.Collections.ObjectModel;
-
-
 
 namespace MailStats
 {
@@ -298,7 +294,7 @@ namespace MailStats
 
 	public class GoogleUser 
 	{
-		// FIXME: Should get their email address too
+		public string Email { get; set; }
 		public string AccessToken { get; set; }
 		public string RefreshToken { get; set; }
 	}
