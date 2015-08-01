@@ -13,5 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MailFetch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GoogleApiService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Database.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CalcStats.cs" />
   </ItemGroup>
 </Project>
