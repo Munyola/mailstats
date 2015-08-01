@@ -11,7 +11,6 @@ using System.Collections.ObjectModel;
 using SimpleAuth;
 using SimpleAuth.OAuth;
 
-using Xamarin.Auth;
 using SimpleAuth.Providers;
 
 namespace MailStats
@@ -22,18 +21,18 @@ namespace MailStats
 		public event PropertyChangedEventHandler PropertyChanged;
 		#endregion
 
-		public string CurrentSort = "ReplyTimesAverage";
+		public string CurrentSort = "MeanReplyTime";
 		public bool CurrentSortAscending = true;
 
-		static List<EmailData> SortEmails(List<EmailData> emails, string property)
+		static List<EmailScoreEntry> SortEmails(List<EmailScoreEntry> emails, string property)
 		{
-			var propertyInfo = typeof(EmailData).GetProperty(property);    
+			var propertyInfo = typeof(EmailScoreEntry).GetProperty(property);    
 			return emails.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
 		}
 			
 		public void FilterSort ()
 		{
-			List<EmailData> list = ScoreBoardMaster;
+			List<EmailScoreEntry> list = ScoreBoardMaster;
 
 			list = SortEmails (ScoreBoardMaster, CurrentSort);
 
@@ -71,8 +70,8 @@ namespace MailStats
 			}
 		}
 
-		List<EmailData> scoreBoardMaster;
-		public List<EmailData> ScoreBoardMaster {
+		List<EmailScoreEntry> scoreBoardMaster;
+		public List<EmailScoreEntry> ScoreBoardMaster {
 			get {
 				return scoreBoardMaster;
 			}
@@ -81,8 +80,8 @@ namespace MailStats
 			}
 		}
 
-		List<EmailData> scoreBoard;
-		public List<EmailData> ScoreBoard {
+		List<EmailScoreEntry> scoreBoard;
+		public List<EmailScoreEntry> ScoreBoard {
 			get {
 				return scoreBoard;
 			}
@@ -121,7 +120,7 @@ namespace MailStats
 
 			count.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.CurrentSort = "ReplyTimesCount";
+				model.CurrentSort = "EmailCount";
 				model.CurrentSortAscending = ! model.CurrentSortAscending;
 				model.FilterSort ();
 			};
@@ -135,7 +134,7 @@ namespace MailStats
 
 			mean.Clicked += (object sender, EventArgs e) => {
 				var model = (MainPageViewModel) BindingContext;
-				model.CurrentSort = "ReplyTimesAverage";
+				model.CurrentSort = "MeanReplyTime";
 				model.CurrentSortAscending = ! model.CurrentSortAscending;
 				model.FilterSort ();
 			};
@@ -288,46 +287,9 @@ namespace MailStats
 		async Task RefreshTable()
 		{
 			var emailData = CalcStats.CalculateStatistics (Constants.DaysAgo);
-			model.ScoreBoardMaster = 
-				emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
+			model.ScoreBoardMaster = null; // FIXME
+			//	emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
 			model.FilterSort ();
-		}
-	}
-
-	public class LoginPage : ContentPage
-	{
-		OAuthApi api;
-
-		public LoginPage ()
-		{
-			api = new GoogleApi("google", Constants.ClientId, Constants.ClientSecret)
-			{
-				Scopes = Constants.Scopes
-			};
-			var button = new Button
-			{
-				Text = "Login",
-			};
-			button.Clicked += async (sender, args) =>
-			{
-				try
-				{
-					var account = await api.Authenticate();
-					Console.WriteLine(account.Identifier);
-				}
-				catch (TaskCanceledException ex)
-				{
-					Console.WriteLine("Canceled");
-				}
-			};
-
-			// The root page of your application
-			Content = new StackLayout {
-				VerticalOptions = LayoutOptions.Center,
-				Children = {
-					button
-				}
-			};
 		}
 	}
 
@@ -362,9 +324,7 @@ namespace MailStats
 	
 		public App ()
 		{	
-			//_NavPage = new NavigationPage (new LoginPage ());
-			//MainPage = _NavPage;
-			MainPage = new LoginPage();
+			MainPage = new LoginPage ();
 		}
 
 		protected override void OnStart ()

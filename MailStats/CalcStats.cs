@@ -5,35 +5,24 @@ using System.Linq;
 
 namespace MailStats
 {
-	public class EmailData
+	public class EmailScoreEntry
 	{
 		public string Email {get;set;}
 		public string Name => ParseName (Email);
 		public string EmailAddress => ParseEmailAddress (Email);
+		public int EmailCount;
+		public double MeanReplyTime;
+		public string MeanReplyTimeString => MinutesToString (MeanReplyTime);
 
-		// Their responses to emails from me
-		public Dictionary<string,int> ReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
-		public double ReplyTimesAverage => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Average();
-		public string ReplyTimesAverageString => MinutesToString (ReplyTimesAverage);
-		public int ReplyTimesMin => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Min();
-		public int ReplyTimesMax => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Max();
-		public int ReplyTimesCount => ReplyTimesMinutes.Count;
+		public static string MinutesToString (double minutes)
+		{
+			var time = TimeSpan.FromMinutes(minutes);
 
-		// My responses to emails from them
-		public Dictionary<string,int> MyReplyTimes { get; set; } = new Dictionary<string,int>();
-		public double MyReplyTimesAverage => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Average();
-		public string MyReplyTimesAverageString => MinutesToString (MyReplyTimesAverage);
-		public int MyReplyTimesMin => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Min();
-		public int MyReplyTimesMax => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Max();
-		public int MyReplyTimesCount => MyReplyTimes.Count;
+			if (time.Days > 0)
+				return $"{time:d\\dh\\h}";
 
-		// Their responses to emails from other people
-		public Dictionary<string,int> OtherReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
-		public double OtherReplyTimesAverage => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Average();
-		public string OtherReplyTimesAverageString => MinutesToString (OtherReplyTimesAverage);
-		public int OtherReplyTimesMin => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Min();
-		public int OtherReplyTimesMax => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Max();
-		public int OtherReplyTimesCount => OtherReplyTimesMinutes.Count;
+			return time.Hours > 0 ? $"{time:h\\hmm\\m}" : $"{time:m\\m}";
+		}
 
 		public static string ParseName(string email)
 		{
@@ -44,20 +33,36 @@ namespace MailStats
 		{
 			return email.IndexOf ('<') < 0 ? email : email.Split ('<') [1].Split('>') [0];
 		}
+	}
+
+	public class EmailData
+	{
+		public string Email {get;set;}
+
+		// Their responses to emails from me
+		public Dictionary<string,int> ReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
+		public double ReplyTimesAverage => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Average();
+		public int ReplyTimesMin => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Min();
+		public int ReplyTimesMax => ReplyTimesMinutes.Count == 0 ? 0 : ReplyTimesMinutes.Values.Max();
+		public int ReplyTimesCount => ReplyTimesMinutes.Count;
+
+		// My responses to emails from them
+		public Dictionary<string,int> MyReplyTimes { get; set; } = new Dictionary<string,int>();
+		public double MyReplyTimesAverage => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Average();
+		public int MyReplyTimesMin => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Min();
+		public int MyReplyTimesMax => MyReplyTimes.Count == 0 ? 0 : MyReplyTimes.Values.Max();
+		public int MyReplyTimesCount => MyReplyTimes.Count;
+
+		// Their responses to emails from other people
+		public Dictionary<string,int> OtherReplyTimesMinutes { get; set; } = new Dictionary<string,int>();
+		public double OtherReplyTimesAverage => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Average();
+		public int OtherReplyTimesMin => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Min();
+		public int OtherReplyTimesMax => OtherReplyTimesMinutes.Count == 0 ? 0 : OtherReplyTimesMinutes.Values.Max();
+		public int OtherReplyTimesCount => OtherReplyTimesMinutes.Count;
 
 		public override string ToString ()
 		{
 			return $"Email={Email}, Count={ReplyTimesMinutes.Count}, Reply Average={ReplyTimesAverage}";
-		}
-
-		public static string MinutesToString (double minutes)
-		{
-			var time = TimeSpan.FromMinutes(minutes);
-
-			if (time.Days > 0)
-				return $"{time:d\\dh\\h}";
-
-			return time.Hours > 0 ? $"{time:h\\hmm\\m}" : $"{time:m\\m}";
 		}
 	}
 
