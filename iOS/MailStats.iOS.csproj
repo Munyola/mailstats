@@ -93,9 +93,6 @@
     <Reference Include="PLCrashReporterUnifiedBinding">
       <HintPath>..\packages\Xamarin.Insights.1.10.5\lib\Xamarin.iOS10\PLCrashReporterUnifiedBinding.dll</HintPath>
     </Reference>
-    <Reference Include="SimpleAuth.iOS">
-      <HintPath>..\packages\Clancey.SimpleAuth.1.0.0\lib\Xamarin.iOS10\SimpleAuth.iOS.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.Forms.Platform.iOS">
       <HintPath>..\packages\Xamarin.Forms.1.4.4.6392\lib\Xamarin.iOS10\Xamarin.Forms.Platform.iOS.dll</HintPath>
     </Reference>
@@ -116,6 +113,9 @@
     </Reference>
     <Reference Include="MailKit">
       <HintPath>..\packages\MailKit.1.2.8.0\lib\xamarinios10\MailKit.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleAuth.iOS">
+      <HintPath>..\packages\Clancey.SimpleAuth.1.0.2\lib\Xamarin.iOS10\SimpleAuth.iOS.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

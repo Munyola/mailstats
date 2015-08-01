@@ -313,6 +313,7 @@ namespace MailStats
 
 				await syncingTask;
 			} catch (Exception ex) {
+				Xamarin.Insights.Report (ex);
 				Console.WriteLine (ex);
 			} finally {
 				model.IsRunning = false;

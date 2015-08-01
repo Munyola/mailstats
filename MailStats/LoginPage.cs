@@ -40,6 +40,7 @@ namespace MailStats
 			}
 			catch (TaskCanceledException ex)
 			{
+				Xamarin.Insights.Report (ex);
 				Console.WriteLine("Canceled");
 			}
 		}
