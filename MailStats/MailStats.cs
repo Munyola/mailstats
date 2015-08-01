@@ -269,7 +269,10 @@ namespace MailStats
 				model.IsRunning = true;
 				if (syncingTask == null || syncingTask.IsCompleted == true) 
 					syncingTask = Task.Run (async () => {
-						await Task.WhenAll (RefreshTable(), MailFetcher.FetchNewEmails (180));
+						if (MailFetch.NumEmails () == 0) {
+							await MailFetch.FetchNewEmails (Constants.InitialFetchDaysAgo);
+						}
+						await Task.WhenAll (RefreshTable(), MailFetch.FetchNewEmails (Constants.DaysAgo));
 						await RefreshTable ();
 					});
 
@@ -283,7 +286,7 @@ namespace MailStats
 
 		async Task RefreshTable()
 		{
-			var emailData = CalcStats.CalculateStatistics (180);
+			var emailData = CalcStats.CalculateStatistics (Constants.DaysAgo);
 			model.ScoreBoardMaster = 
 				emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
 			model.FilterSort ();

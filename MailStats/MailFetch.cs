@@ -36,6 +36,10 @@ namespace MailStats
 			return mailbox;
 		}
 
+		public static int NumEmails()
+		{
+			return Database.Main.ExecuteScalar<int> ("SELECT COUNT(*) from Email;");
+		}
 
 		public static async Task FetchNewEmails (int daysAgo)
 		{

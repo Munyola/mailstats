@@ -9,6 +9,10 @@
 		public static string AuthorizeUrl = "https://accounts.google.com/o/oauth2/auth";
 		public static string RedirectUrl = "http://localhost";
 		public static string AccessTokenUrl = "https://accounts.google.com/o/oauth2/token";
+
+		// Settings
+		public static int DaysAgo = 180; // How far to look back at email
+		public static int InitialFetchDaysAgo = 10; // Initial fetch to display some results fast
 	}
 }
 

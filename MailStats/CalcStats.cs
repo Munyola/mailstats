@@ -66,7 +66,6 @@ namespace MailStats
 
 		public static Dictionary<string,EmailData> CalculateStatistics (int daysAgo)
 		{
-
 			var myEmailAddress = App.GoogleUser.Email;
 			var minDate = (DateTimeOffset) DateTime.Now.AddDays(-daysAgo);
 			var emails = Database.Main.Table<Email> ().Where (x => x.Date > minDate).ToList ();
