@@ -234,7 +234,7 @@ namespace MailStats
 			SearchBar searchBar = new SearchBar ();
 			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
 
-
+			// FIXME: need the Android renderer
 			var segment = new SegmentedControl.SegmentedControl {
 				Children = {
 					new SegmentedControlOption { Text = "To Me" },

@@ -71,9 +71,21 @@ namespace MailStats
 
 			Console.WriteLine ("Search got {0} total emails in {1} seconds", newUids.Count, (DateTime.Now - start).TotalSeconds);
 
+//			var ids = newUids.Select (x => x.Id).ToList ();
+//
+//			foreach (var id in ids) {
+//				Console.WriteLine ("id: #{0}", id);
+//			}
+
 			start = DateTime.Now;
-			var emails = inbox.Fetch (newUids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
-			Console.WriteLine("Fetched {0} email headers in {1} seconds", emails.Count, (DateTime.Now - start).TotalSeconds);
+			IList<IMessageSummary> emails = null;
+			try {
+				emails = inbox.Fetch (newUids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+				Console.WriteLine("Fetched {0} email headers in {1} seconds", emails.Count, (DateTime.Now - start).TotalSeconds);
+			} catch (Exception e) {
+				Xamarin.Insights.Report (e);
+				Console.WriteLine (e);
+			}
 
 			var newEmails = emails.Select (mail => new Email { 
 				Id = mail.Envelope.MessageId,
