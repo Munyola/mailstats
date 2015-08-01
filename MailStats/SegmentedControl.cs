@@ -36,7 +36,7 @@ namespace SegmentedControl
 		public int SelectedIndex {
 			get{ return selectedIndex; }
 			set {
-				if (selectedIndex = value)
+				if (selectedIndex == value)
 					return;
 				selectedIndex = value;
 				SelectedValue = Children [value].Text;
