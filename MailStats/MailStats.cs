@@ -6,12 +6,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections.ObjectModel;
-
-using SimpleAuth;
-using SimpleAuth.OAuth;
-
-using SimpleAuth.Providers;
 
 namespace MailStats
 {
@@ -47,16 +41,26 @@ namespace MailStats
 			}
 		}
 
-		List<EmailScoreEntry> scoreBoardMaster;
-		public List<EmailScoreEntry> ScoreBoardMaster {
+		string statusText;
+		public string StatusText {
 			get {
-				return scoreBoardMaster;
+				return statusText;
 			}
 			set {
-				scoreBoardMaster = value;
+				statusText = value;
+				OnPropertyChanged ();
 			}
 		}
 
+		// The computed scoreboards for emails to and from me; we swap
+		// the displayed scoreboard between these two when the user 
+		// toggles the view.
+		public List<EmailScoreEntry> ToMeScoreboard {get; set;}
+		public List<EmailScoreEntry> FromMeScoreboard {get; set;}
+
+		public List<EmailScoreEntry> ScoreBoardMaster {get; set;}
+
+		// The filtered/sorted version of the scoreboard
 		List<EmailScoreEntry> scoreBoard;
 		public List<EmailScoreEntry> ScoreBoard {
 			get {
@@ -67,9 +71,6 @@ namespace MailStats
 				OnPropertyChanged ();
 			}
 		}
-
-		public List<EmailScoreEntry> ToMeScoreboard {get; set;}
-		public List<EmailScoreEntry> FromMeScoreboard {get; set;}
 
 		public void OnPropertyChanged ([CallerMemberName] string propertyName = "")
 		{
@@ -84,9 +85,7 @@ namespace MailStats
 
 		public void FilterSort ()
 		{
-			List<EmailScoreEntry> list = ScoreBoardMaster;
-
-			list = SortEmails (ScoreBoardMaster, CurrentSort);
+			var list = SortEmails (ScoreBoardMaster, CurrentSort);
 
 			if (searchBarText?.Length > 0) {
 				var lowercase = searchBarText.ToLower ();
@@ -246,12 +245,19 @@ namespace MailStats
 				model.FilterSort ();
 			};
 
+			var statusLabel = new Label {
+				FontSize = 10,
+				VerticalOptions = LayoutOptions.CenterAndExpand
+			};
+			statusLabel.SetBinding (Label.TextProperty, "StatusText");
+
 			var topLayout = new StackLayout {
 				Orientation = StackOrientation.Horizontal,
 				Children = {
 					toMeButton,
 					fromMeButton,
-					indicator
+					indicator,
+					statusLabel
 				}
 			};
 
@@ -286,10 +292,17 @@ namespace MailStats
 				if (syncingTask == null || syncingTask.IsCompleted == true) 
 					syncingTask = Task.Run (async () => {
 						if (MailFetch.NumEmails () == 0) {
+							model.StatusText = "Fetching 7 days of email...";
 							await MailFetch.FetchNewEmails (Constants.InitialFetchDaysAgo);
 						}
-						await Task.WhenAll (RefreshTable(), MailFetch.FetchNewEmails (Constants.DaysAgo));
+
+						model.StatusText = "Computing leaderboard...";
+						await RefreshTable();
+						model.StatusText = "Fetching 6 months of email...";
+						await MailFetch.FetchNewEmails (Constants.DaysAgo);
+						model.StatusText = "Recomputing leaderboard...";
 						await RefreshTable ();
+						model.StatusText = "";
 					});
 
 				await syncingTask;
