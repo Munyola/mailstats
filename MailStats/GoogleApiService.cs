@@ -138,17 +138,13 @@ namespace MailStats
 		}
 
 
-		public Task<UserProfile> GetUserProfile()
+		public UserProfile GetUserProfile(string access_token)
 		{
-			return new Task<UserProfile>(() =>
-				{
-					var client = new HttpClient();
-					const string url = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json";
-					client.DefaultRequestHeaders.Add("Authorization", App.GoogleUser.AccessToken);
-					var json = client.GetStringAsync(url).Result;
-					var profile = JsonConvert.DeserializeObject<UserProfile>(json);
-					return profile;
-				});
+			var client = new HttpClient();
+			string url = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" + access_token;
+			var json = client.GetStringAsync(url).Result;
+			var profile = JsonConvert.DeserializeObject<UserProfile>(json);
+			return profile;
 		}
 
 		public Task<Tuple<string, string>> GetAuthAndRefreshToken(string code)
@@ -184,37 +180,32 @@ namespace MailStats
 				});
 		}
 
-		public Task<string> GetNewAuthToken(string refreshToken)
+		public string GetNewAuthToken(string refreshToken)
 		{
-			return new Task<string>(() =>
+			const string url = "https://www.googleapis.com/oauth2/v3/token";
+
+			using(var client = new HttpClient())
+			{
+				var dict = new Dictionary<string, string>();
+				dict.Add("grant_type", "refresh_token");
+				dict.Add("refresh_token", refreshToken);
+				dict.Add("client_id", Constants.ClientId);
+				dict.Add("client_secret", Constants.ClientSecret);
+
+				var content = new FormUrlEncodedContent(dict);
+
+				client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+				var response = client.PostAsync(url, content).Result;
+				var body = response.Content.ReadAsStringAsync().Result;
+				dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
+
+				if(!dict.ContainsKey("token_type"))
 				{
-					const string url = "https://www.googleapis.com/oauth2/v3/token";
+					return null;
+				}
 
-					using(var client = new HttpClient())
-					{
-						var dict = new Dictionary<string, string>();
-						dict.Add("grant_type", "refresh_token");
-						dict.Add("refresh_token", refreshToken);
-						dict.Add("client_id", Constants.ClientId);
-						dict.Add("client_secret", Constants.ClientSecret);
-
-						var content = new FormUrlEncodedContent(dict);
-
-						client.DefaultRequestHeaders.Add("Authorization", App.GoogleUser.AccessToken);
-						client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
-						var response = client.PostAsync(url, content).Result;
-						var body = response.Content.ReadAsStringAsync().Result;
-						dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
-
-						if(!dict.ContainsKey("token_type"))
-						{
-							return null;
-						}
-
-						var newAuthToken = "{0} {1}".Fmt(dict["token_type"], dict["access_token"]);
-						return newAuthToken;
-					}
-				});
+				return dict ["access_token"];
+			}
 		}
 
 		#endregion

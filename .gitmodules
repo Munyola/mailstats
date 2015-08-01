@@ -1,0 +1,3 @@
+[submodule "SimpleAuth"]
+	path = SimpleAuth
+	url = https://github.com/Clancey/SimpleAuth

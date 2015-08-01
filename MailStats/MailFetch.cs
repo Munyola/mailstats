@@ -137,11 +137,11 @@ namespace MailStats
 
 	public static class MainClass
 	{
-		private static IMailFolder GetMailbox (string email, string password)
+		private static IMailFolder GetMailbox ()
 		{
 			var client = new ImapClient ();
 
-			var credentials = new NetworkCredential ("nat@xamarin.com", App.GoogleUser.AccessToken);
+			var credentials = new NetworkCredential (App.GoogleUser.Email, App.GoogleUser.AccessToken);
 
 			client.Connect ("imap.gmail.com", 993, true);
 			try {
@@ -173,8 +173,10 @@ namespace MailStats
 		// - Leaderboard of people you email with the most, with median response times
 		// - Graph of # of emails sent/received by time of day
 		// - Per-person stats: # of emails, avg, min, max thread lengths.
-		public static Dictionary<string,EmailData> CalculateStatistics (string myEmailAddress, int daysAgo)
+		public static Dictionary<string,EmailData> CalculateStatistics (int daysAgo)
 		{
+
+			var myEmailAddress = App.GoogleUser.Email;
 			var minDate = (DateTimeOffset) DateTime.Now.AddDays(-daysAgo);
 			var emails = Database.Main.Table<Email> ().Where (x => x.Date > minDate).ToList ();
 
@@ -228,23 +230,24 @@ namespace MailStats
 			return emailData;
 		}
 
-		public static async Task FetchNewEmails (string myEmailAddress, string password, int daysAgo)
+		public static async Task FetchNewEmails (int daysAgo)
 		{
+			var myEmailAddress = App.GoogleUser.Email;
 			var fetchStart = DateTime.Now.AddDays (-daysAgo);
 			var fetchEnd = DateTime.Now;
 
 			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
-			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
-				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
-				return;
-			} 
+//			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
+//				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
+//				return;
+//			} 
 			
 			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
 				fetchStart = syncState.DownloadEnd;
 
 			var start = DateTime.Now;
-			var inbox = GetMailbox (myEmailAddress, password);
+			var inbox = GetMailbox ();
 
 			// Make sure we search at least one day to work around a strange behavior where
 			// Google is returning the entire mailbox.

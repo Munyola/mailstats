@@ -6,6 +6,12 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
+
+using SimpleAuth;
+using SimpleAuth.OAuth;
+
+using Xamarin.Auth;
 
 namespace MailStats
 {
@@ -245,7 +251,9 @@ namespace MailStats
 			};
 
 			// Accommodate iPhone status header
-			this.Padding = new Thickness(0, Device.OnPlatform(20, 0, 0), 0, 0);
+			this.Padding = new Thickness(0, 
+				Device.OnPlatform(20, 0, 0), // iOS, Android, WinPhone
+				0, 0);
 		}
 
 		protected override void OnAppearing ()
@@ -262,12 +270,8 @@ namespace MailStats
 				model.IsRunning = true;
 				if (syncingTask == null || syncingTask.IsCompleted == true) 
 					syncingTask = Task.Run (async () => {
-						var emailpassword = System.IO.File.ReadAllText ("/tmp/gmail.txt").Trim().Split (',');
-						var email = emailpassword [0];
-						var password = emailpassword [1];
-
-						await Task.WhenAll (RefreshTable(email), MainClass.FetchNewEmails (email, password, 180));
-						await RefreshTable (email);
+						await Task.WhenAll (RefreshTable(), MainClass.FetchNewEmails (180));
+						await RefreshTable ();
 					});
 
 				await syncingTask;
@@ -278,9 +282,9 @@ namespace MailStats
 			}
 		}
 
-		async Task RefreshTable(string email)
+		async Task RefreshTable()
 		{
-			var emailData = MainClass.CalculateStatistics (email, 180);
+			var emailData = MainClass.CalculateStatistics (180);
 			model.ScoreBoardMaster = 
 				emailData.Where (X => X.Value.ReplyTimesMinutes.Count > 0).Select (X => X.Value).Where (X => X.ReplyTimesCount > 2).OrderBy (X => X.ReplyTimesAverage).ToList ();
 			model.FilterSort ();
@@ -289,7 +293,43 @@ namespace MailStats
 
 	public class LoginPage : ContentPage
 	{
-
+//		public LoginPage ()
+//		{
+//			OAuthApi api;
+//
+//			api = new OAuthApi("google", new OAuthAuthenticator(
+//				Constants.AuthorizeUrl,
+//				Constants.AccessTokenUrl,
+//				Constants.RedirectUrl,
+//				Constants.ClientId,
+//				Constants.ClientSecret));
+//			var button = new Button
+//			{
+//				Text = "Login",
+//			};
+//
+//			button.Clicked += async (sender, args) =>
+//			{
+//				try
+//				{
+//					var account = await api.Authenticate();
+//					Console.WriteLine(account.Identifier);
+//					App.SuccessfulLoginAction.Invoke ();
+//				}
+//				catch (TaskCanceledException ex)
+//				{
+//					Console.WriteLine("Canceled");
+//				}
+//			};
+//
+//			// The root page of your application
+//			Content = new StackLayout {
+//				VerticalOptions = LayoutOptions.Center,
+//				Children = {
+//					button
+//				}
+//			};
+//		}
 	}
 
 	public class GoogleUser 
@@ -301,7 +341,6 @@ namespace MailStats
 
 	public class App : Application
 	{
-		static NavigationPage _NavPage;
 		public static string AppName { get { return "MailStats"; } }
 		public static GoogleUser GoogleUser { get; set; }
 
