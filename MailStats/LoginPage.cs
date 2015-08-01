@@ -20,13 +20,9 @@ namespace MailStats
 
 				var google = (GoogleApi) api;
 				var profile = await google.GetUserInfo();
-				account.UserData["email"] = profile.Email;
-				//FIXME save the account with the updated user data
-
 				App.GoogleUser = new GoogleUser();
 				App.GoogleUser.Email = profile.Email;
-				// App.GoogleUser.AccessToken = ???
-				//FIXME how do I get the current, refreshed access token?
+				App.GoogleUser.AccessToken = api.CurrentOAuthAccount.Token;
 				
 				App.SuccessfulLoginAction.Invoke ();
 			}
