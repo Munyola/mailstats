@@ -49,7 +49,7 @@ namespace MailStats
 
 			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
 
-			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60)) {
+			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60) && syncState.DownloadStart < fetchStart) {
 				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
 				return;
 			} 
