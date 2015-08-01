@@ -7,6 +7,8 @@ using UIKit;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.iOS;
 
+using Xamarin;
+
 namespace MailStats.iOS
 {
 	[Register ("AppDelegate")]
@@ -14,6 +16,8 @@ namespace MailStats.iOS
 	{
 		public override bool FinishedLaunching (UIApplication app, NSDictionary options)
 		{
+			Insights.Initialize("00e2e3fb179d9c7144f599bc619cfb914081d2ea");
+
 			global::Xamarin.Forms.Forms.Init ();
 
 			// Code for starting up the Xamarin Test Cloud Agent
