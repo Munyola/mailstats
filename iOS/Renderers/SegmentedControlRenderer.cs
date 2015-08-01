@@ -23,7 +23,7 @@ namespace SegmentedControl.iOS
 			}
 			segmentedControl.ValueChanged += (sender, eventArgs) => {
 				var seg = sender as UISegmentedControl;
-				e.NewElement.SelectedValue = seg.TitleAt(segmentedControl.SelectedSegment);
+				e.NewElement.SelectedIndex = (int)seg.SelectedSegment;
 			};
 			e.NewElement.ValueChanged += async (object sender, EventArgs ev) => {
 				var seg = sender as SegmentedControl;
