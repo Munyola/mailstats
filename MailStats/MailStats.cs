@@ -234,18 +234,13 @@ namespace MailStats
 			SearchBar searchBar = new SearchBar ();
 			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
 
-			var toMeButton = new Button {
-				Text = "To Me"
-			};
-
-			var toMe = new SegmentedControlOption ();
-			toMe.Text = "To Me";
 
 			var segment = new SegmentedControl.SegmentedControl {
 				Children = {
-					toMe,
+					new SegmentedControlOption { Text = "To Me" },
 					new SegmentedControlOption { Text = "From Me" },
-				}
+				},
+				SelectedIndex = 0
 			};
 
 			segment.ValueChanged += (object sender, EventArgs e) => {
@@ -282,8 +277,6 @@ namespace MailStats
 				}
 			};
 
-			segment.SelectedValue = "To Me";
-
 			// Accommodate iPhone status header
 			this.Padding = new Thickness(0, 
 				Device.OnPlatform(20, 0, 0), // iOS, Android, WinPhone
@@ -311,7 +304,7 @@ namespace MailStats
 
 						model.StatusText = "Computing leaderboard...";
 						await RefreshTable();
-						model.StatusText = "Fetching 6 months of email...";
+						model.StatusText = "Fetching 6 months of email..."; // FIXME: not really six months if we've already fetched...
 						await MailFetch.FetchNewEmails (Constants.DaysAgo);
 						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anyhting
 						await RefreshTable ();
