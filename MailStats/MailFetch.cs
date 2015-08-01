@@ -29,6 +29,7 @@ namespace MailStats
 			{
 				// FIXME: Handle this error correctly
 				Console.WriteLine("Got exception: #{0}", e);
+				throw;
 			}
 
 			var mailbox =  client.GetFolder ("[Gmail]/All Mail");

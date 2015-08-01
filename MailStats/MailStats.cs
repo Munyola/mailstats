@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Linq;
 
+using SegmentedControl;
+
 namespace MailStats
 {
 	public class MainPageViewModel : INotifyPropertyChanged
@@ -232,16 +234,26 @@ namespace MailStats
 			var toMeButton = new Button {
 				Text = "To Me"
 			};
-			toMeButton.Clicked += (object sender, EventArgs e) => {
-				model.ScoreBoardMaster = model.ToMeScoreboard;
-				model.FilterSort ();
+
+			// FIXME: how to set a default?
+
+			var toMe = new SegmentedControlOption ();
+			toMe.Text = "To Me";
+			toMe.Focus (); // FIXME: This doesn't work to make this the default option
+
+			var segment = new SegmentedControl.SegmentedControl {
+				Children = {
+					toMe,
+					new SegmentedControlOption { Text = "From Me" },
+				}
 			};
 
-			var fromMeButton = new Button {
-				Text = "From Me"
-			};
-			fromMeButton.Clicked += (object sender, EventArgs e) => {
-				model.ScoreBoardMaster = model.FromMeScoreboard;
+			segment.ValueChanged += (object sender, EventArgs e) => {
+				var s = (SegmentedControl.SegmentedControl) sender;
+				if (s.SelectedValue == "To Me")
+					model.ScoreBoardMaster = model.ToMeScoreboard;
+				else
+					model.ScoreBoardMaster = model.FromMeScoreboard;
 				model.FilterSort ();
 			};
 
@@ -254,8 +266,7 @@ namespace MailStats
 			var topLayout = new StackLayout {
 				Orientation = StackOrientation.Horizontal,
 				Children = {
-					toMeButton,
-					fromMeButton,
+					segment,
 					indicator,
 					statusLabel
 				}
@@ -300,7 +311,7 @@ namespace MailStats
 						await RefreshTable();
 						model.StatusText = "Fetching 6 months of email...";
 						await MailFetch.FetchNewEmails (Constants.DaysAgo);
-						model.StatusText = "Recomputing leaderboard...";
+						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anyhting
 						await RefreshTable ();
 						model.StatusText = "";
 					});
