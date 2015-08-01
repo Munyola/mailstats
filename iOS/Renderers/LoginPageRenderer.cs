@@ -16,8 +16,6 @@ namespace MailStats.iOS
 		{
 			base.ViewDidAppear (animated);
 
-			Console.WriteLine ("In login page renderer....");
-
 			var accounts = AccountStore.Create ().FindAccountsForService (App.AppName);
 			var account = accounts.FirstOrDefault ();
 
@@ -37,9 +35,6 @@ namespace MailStats.iOS
 				auth.Completed += (sender, e) => {
 
 					if (e.IsAuthenticated) {
-						// Dismiss the modal
-						//Device.BeginInvokeOnMainThread (() => UIApplication.SharedApplication.KeyWindow.RootViewController.DismissViewController (true, null));
-
 						AccountStore.Create ().Save (e.Account, App.AppName);
 
 						var user = new GoogleUser ();

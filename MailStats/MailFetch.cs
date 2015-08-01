@@ -144,12 +144,12 @@ namespace MailStats
 			var credentials = new NetworkCredential ("nat@xamarin.com", App.GoogleUser.AccessToken);
 
 			client.Connect ("imap.gmail.com", 993, true);
-			//client.AuthenticationMechanisms.Remove ("XOAUTH");
 			try {
 				client.Authenticate (credentials);
 			}
 			catch (Exception e)
 			{
+				// FIXME: Handle this error correctly
 				Console.WriteLine("Got exception: #{0}", e);
 			}
 
