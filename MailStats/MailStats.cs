@@ -24,29 +24,6 @@ namespace MailStats
 		public string CurrentSort = "MeanReplyTime";
 		public bool CurrentSortAscending = true;
 
-		static List<EmailScoreEntry> SortEmails(List<EmailScoreEntry> emails, string property)
-		{
-			var propertyInfo = typeof(EmailScoreEntry).GetProperty(property);    
-			return emails.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
-		}
-			
-		public void FilterSort ()
-		{
-			List<EmailScoreEntry> list = ScoreBoardMaster;
-
-			list = SortEmails (ScoreBoardMaster, CurrentSort);
-
-			if (searchBarText?.Length > 0) {
-				var lowercase = searchBarText.ToLower ();
-				list = list.Where (x => x.Email.ToLower ().Contains (lowercase)).ToList ();
-			}
-
-			if (!CurrentSortAscending)
-				list.Reverse ();
-
-			ScoreBoard = list;			
-		}
-
 		string searchBarText;
 		public string SearchBarText {
 			get {
@@ -91,9 +68,35 @@ namespace MailStats
 			}
 		}
 
+		public List<EmailScoreEntry> ToMeScoreboard {get; set;}
+		public List<EmailScoreEntry> FromMeScoreboard {get; set;}
+
 		public void OnPropertyChanged ([CallerMemberName] string propertyName = "")
 		{
 			PropertyChanged?.Invoke (this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		static List<EmailScoreEntry> SortEmails(List<EmailScoreEntry> emails, string property)
+		{
+			var propertyInfo = typeof(EmailScoreEntry).GetProperty(property);    
+			return emails.OrderBy(x => propertyInfo.GetValue(x, null)).ToList();
+		}
+
+		public void FilterSort ()
+		{
+			List<EmailScoreEntry> list = ScoreBoardMaster;
+
+			list = SortEmails (ScoreBoardMaster, CurrentSort);
+
+			if (searchBarText?.Length > 0) {
+				var lowercase = searchBarText.ToLower ();
+				list = list.Where (x => x.Email.ToLower ().Contains (lowercase)).ToList ();
+			}
+
+			if (!CurrentSortAscending)
+				list.Reverse ();
+
+			ScoreBoard = list;			
 		}
 	}
 
@@ -203,18 +206,6 @@ namespace MailStats
 		}
 	}
 
-	public class BaseContentPage : ContentPage
-	{
-		protected override void OnAppearing ()
-		{
-			base.OnAppearing ();
-
-			if (!App.IsLoggedIn) {
-				Navigation.PushModalAsync(new LoginPage());
-			}
-		}
-	}
-
 	public class MainPage : ContentPage
 	{
 		MainPageViewModel model;
@@ -239,13 +230,38 @@ namespace MailStats
 			SearchBar searchBar = new SearchBar ();
 			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
 
+			var toMeButton = new Button {
+				Text = "To Me"
+			};
+			toMeButton.Clicked += (object sender, EventArgs e) => {
+				model.ScoreBoardMaster = model.ToMeScoreboard;
+				model.FilterSort ();
+			};
+
+			var fromMeButton = new Button {
+				Text = "From Me"
+			};
+			fromMeButton.Clicked += (object sender, EventArgs e) => {
+				model.ScoreBoardMaster = model.FromMeScoreboard;
+				model.FilterSort ();
+			};
+
+			var topLayout = new StackLayout {
+				Orientation = StackOrientation.Horizontal,
+				Children = {
+					toMeButton,
+					fromMeButton,
+					indicator
+				}
+			};
+
 			Content = new StackLayout {
 				VerticalOptions = LayoutOptions.Center,
 				Children = {
+					topLayout,
 					searchBar,
 					new ScoreboardHeader(),
-					listView,
-					indicator
+					listView
 				}
 			};
 
@@ -258,12 +274,12 @@ namespace MailStats
 		protected override void OnAppearing ()
 		{
 			base.OnAppearing ();
-			Refresh();
+			Refresh ();
 		}
 
 		Task syncingTask;
 
-		async void Refresh()
+		async void Refresh ()
 		{
 			try {
 				model.IsRunning = true;
@@ -287,14 +303,14 @@ namespace MailStats
 		async Task RefreshTable()
 		{
 			var emailData = CalcStats.CalculateStatistics (Constants.DaysAgo);
-			var toMeData = 
+			model.ToMeScoreboard = 
 				emailData.Where (x => x.Value.ReplyTimesCount > 2).Select (x => x.Value).OrderBy (x => x.ReplyTimesAverage).
 				Select(x => new EmailScoreEntry(x, false)).ToList ();
-			var fromMeData = 
-				emailData.Where (x => x.Value.MyReplyTimesCount > 0).Select (X => X.Value).OrderBy (X => X.MyReplyTimesAverage).
+			model.FromMeScoreboard = 
+				emailData.Where (x => x.Value.MyReplyTimesCount > 2).Select (X => X.Value).OrderBy (X => X.MyReplyTimesAverage).
 				Select(x => new EmailScoreEntry(x, true)).ToList ();
 
-			model.ScoreBoardMaster = toMeData;
+			model.ScoreBoardMaster = model.ToMeScoreboard;
 						
 			model.FilterSort ();
 		}

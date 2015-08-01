@@ -142,7 +142,6 @@
     <Compile Include="AppDelegate.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="SQLiteAsync.cs" />
-    <Compile Include="Renderers\LoginPageRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ITunesArtwork Include="ITunesArtwork" />
