@@ -18,7 +18,7 @@ namespace SegmentedControl.iOS
 
 			var segmentedControl = new UISegmentedControl ();
 
-			for (var i = 0; i < e.NewElement.Children.Count; i++) {
+			for (var i = 0; i < e.NewElement?.Children.Count; i++) {
 				segmentedControl.InsertSegment (e.NewElement.Children [i].Text, i, false);
 			}
 			segmentedControl.ValueChanged += (sender, eventArgs) => {
