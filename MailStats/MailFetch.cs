@@ -87,6 +87,11 @@ namespace MailStats
 				// FIXME: don't re-fetch UIDs we've already fetched; maybe check the database before fetching,
 				// as an added optimization on the syncstate ranges, in case downloads get interrupted halfway
 				// through.
+				//
+				// The way to do that:
+				// - Grab a list of all UIDs from the database
+				// - sublist = sublist - database_uids
+
 
 				IList<IMessageSummary> emails = null;
 				try {

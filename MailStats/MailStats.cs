@@ -110,19 +110,24 @@ namespace MailStats
 
 		public ScoreboardHeader ()
 		{
+			var fontSize = 16;
+
 			email = new Button {
 				Text = "Person",
-				FontAttributes = FontAttributes.Bold
+				FontAttributes = FontAttributes.Bold,
+				FontSize = fontSize
 			};
 
 			count = new Button {
 				Text = "Count",
 				FontAttributes = FontAttributes.Bold,
+				FontSize = fontSize
 			};
 
 			mean = new Button {
 				Text = "Reply time",
 				FontAttributes = FontAttributes.Bold,
+				FontSize = fontSize
 			};
 
 			count.Clicked += (object sender, EventArgs e) => {
@@ -149,6 +154,8 @@ namespace MailStats
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) });
 			ColumnDefinitions.Add (new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) });
+
+			Padding = 10;
 
 			Children.Add (email, 0, 0);
 			Children.Add (count, 1, 0);
@@ -178,7 +185,7 @@ namespace MailStats
 			count.FontSize = fontSize;
 			count.XAlign = TextAlignment.End;
 
-			count.SetBinding (Label.TextProperty, "EmailCount");
+			count.SetBinding (Label.TextProperty, "EmailCountString");
 
 			mean = new Label ();
 			mean.FontSize = fontSize;
@@ -230,6 +237,11 @@ namespace MailStats
 			};
 
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
+			listView.ItemSelected += (sender, e) => {
+				if (e != null)
+					((ListView) sender).SelectedItem = null;
+			};
+			listView.VerticalOptions = LayoutOptions.FillAndExpand;
 
 			SearchBar searchBar = new SearchBar ();
 			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");

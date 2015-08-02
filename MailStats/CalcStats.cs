@@ -11,8 +11,14 @@ namespace MailStats
 		public string Name => ParseName (Email);
 		public string EmailAddress => ParseEmailAddress (Email);
 		public int EmailCount {get; set;}
+		public string EmailCountString => NumberToString (EmailCount);
 		public double MeanReplyTime { get; set; }
 		public string MeanReplyTimeString => MinutesToString (MeanReplyTime);
+
+		public static string NumberToString (int number)
+		{
+			return number.ToString("N0");
+		}
 
 		public static string MinutesToString (double minutes)
 		{
