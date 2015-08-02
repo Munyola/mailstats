@@ -29,7 +29,6 @@ namespace MailStats
 			{
 				// FIXME: Handle this error correctly
 				Xamarin.Insights.Report (e);
-				Console.WriteLine("Got exception: #{0}", e);
 				throw;
 			}
 

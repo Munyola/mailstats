@@ -125,7 +125,7 @@ namespace MailStats
 			};
 
 			mean = new Button {
-				Text = "Reply time",
+				Text = "Reply Time",
 				FontAttributes = FontAttributes.Bold,
 				FontSize = fontSize
 			};
@@ -320,13 +320,18 @@ namespace MailStats
 						await RefreshTable();
 
 						model.StatusText = "Fetching " + Constants.DaysAgo + " days of email..."; // FIXME: not really six months if we've already fetched...
+						var fetched = 0;
 						await MailFetch.FetchNewEmails (Constants.DaysAgo, (percent, emailsFetched, totalEmails) => {
+							fetched ++;
 							model.StatusText = $"Fetched {emailsFetched}/{totalEmails} emails - {percent}%";
-							Console.WriteLine ("Fetched {0}/{1} ({2}%) email headers", emailsFetched, totalEmails, percent); });
+							Console.WriteLine ("Fetched {0}/{1} ({2}%) email headers", emailsFetched, totalEmails, percent); 
+						});
 
-						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anything
-						await RefreshTable ();
-						model.StatusText = "";
+						if (fetched > 0) {
+							model.StatusText = "Recomputing leaderboard...";
+							await RefreshTable ();
+						}
+						//model.StatusText = String.Format("{0} emails.", MailFetch.NumEmails ().ToString("N0"));
 					});
 
 				await syncingTask;

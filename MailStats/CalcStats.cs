@@ -87,7 +87,6 @@ namespace MailStats
 
 	public class CalcStats 
 	{
-		// FIXME only count replies, not forwards
 		public static Dictionary<string,EmailData> CalculateStatistics (int daysAgo)
 		{
 			var myEmailAddress = App.GoogleUser.Email;
@@ -111,11 +110,26 @@ namespace MailStats
 					isMyEmail = true;
 				}
 
-				Email repliedFrom = null;
-				if (!emailsById.TryGetValue (email.InReplyTo ?? "", out repliedFrom))
+				Email origEmail = null;
+				if (!emailsById.TryGetValue (email.InReplyTo ?? "", out origEmail))
 					continue;
 
-				var key = isMyEmail ? repliedFrom.From : email.From;
+				// Ignore exchanges between other people
+				if (origEmail.From.IndexOf(myEmailAddress, StringComparison.CurrentCultureIgnoreCase) == -1 &&
+					email.From.IndexOf(myEmailAddress, StringComparison.CurrentCultureIgnoreCase) == -1)
+					continue;
+
+				// Ignore emails which are not replies to the original email; they are probably forwards
+				if (email.To.IndexOf (EmailScoreEntry.ParseEmailAddress(origEmail.From) , StringComparison.CurrentCultureIgnoreCase) == -1) {
+					continue;
+				}
+
+				// Ignore emails that are replies to myself
+				if (isMyEmail && email.To.IndexOf(myEmailAddress, StringComparison.CurrentCultureIgnoreCase) > -1) {
+					continue;
+				}
+
+				var key = isMyEmail ? origEmail.From : email.From;
 
 				EmailData data;
 				if (!emailData.TryGetValue (key, out data)) {
@@ -124,12 +138,12 @@ namespace MailStats
 					};
 				}
 
-				var replyTime = (int)(email.Date - repliedFrom.Date).TotalMinutes;
+				var replyTime = (int)(email.Date - origEmail.Date).TotalMinutes;
 
 				if (isMyEmail)
 					data.MyReplyTimes [email.Id] = replyTime;
 				else {
-					if (repliedFrom.From.IndexOf (myEmailAddress, StringComparison.CurrentCultureIgnoreCase) > -1) {
+					if (origEmail.From.IndexOf (myEmailAddress, StringComparison.CurrentCultureIgnoreCase) > -1) {
 						data.ReplyTimesMinutes [email.Id] = replyTime;
 					} else {
 						data.OtherReplyTimesMinutes [email.Id] = replyTime;
