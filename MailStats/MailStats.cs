@@ -305,8 +305,12 @@ namespace MailStats
 
 						model.StatusText = "Computing leaderboard...";
 						await RefreshTable();
+
 						model.StatusText = "Fetching " + Constants.DaysAgo + " days of email..."; // FIXME: not really six months if we've already fetched...
-						await MailFetch.FetchNewEmails (Constants.DaysAgo);
+						await MailFetch.FetchNewEmails (Constants.DaysAgo, (percent, emailsFetched, totalEmails) => {
+							model.StatusText = $"Fetched {emailsFetched}/{totalEmails} emails - {percent}%";
+							Console.WriteLine ("Fetched {0}/{1} ({2}%) email headers", emailsFetched, totalEmails, percent); });
+
 						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anything
 						await RefreshTable ();
 						model.StatusText = "";

@@ -43,7 +43,9 @@ namespace MailStats
 			return Database.Main.ExecuteScalar<int> ("SELECT COUNT(*) from Email;");
 		}
 
-		public static async Task FetchNewEmails (int daysAgo)
+		public delegate void FetchEmailProgressCallback(int percent, int emailsFetched, int totalEmails);
+		
+		public static async Task FetchNewEmails (int daysAgo, FetchEmailProgressCallback progressCallback = null)
 		{
 			var myEmailAddress = App.GoogleUser.Email;
 			var fetchStart = DateTime.Now.AddDays (-daysAgo);
@@ -72,32 +74,40 @@ namespace MailStats
 
 			Console.WriteLine ("Search got {0} total emails in {1} seconds", newUids.Count, (DateTime.Now - start).TotalSeconds);
 
-//			var ids = newUids.Select (x => x.Id).ToList ();
-//
-//			foreach (var id in ids) {
-//				Console.WriteLine ("id: #{0}", id);
-//			}
+			// Split the set of emails to grab into chunks of 100 so we can report progress
+			var sublists = newUids
+				.Select((x, i) => new { Index = i, Value = x })
+				.GroupBy(x => x.Index / 100)
+				.Select(x => x.Select(v => v.Value).ToList())
+				.ToArray();
 
-			start = DateTime.Now;
-			IList<IMessageSummary> emails = null;
-			try {
-				emails = inbox.Fetch (newUids, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
-				Console.WriteLine("Fetched {0} email headers in {1} seconds", emails.Count, (DateTime.Now - start).TotalSeconds);
-			} catch (Exception e) {
-				Xamarin.Insights.Report (e);
-				Console.WriteLine (e);
+			var emailsFetched = 0;
+			foreach (var sublist in sublists) {
+
+				// FIXME: don't re-fetch UIDs we've already fetched
+
+				IList<IMessageSummary> emails = null;
+				try {
+					emails = inbox.Fetch (sublist, MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId);
+					emailsFetched += sublist.Count;
+					if (progressCallback != null)
+						progressCallback (emailsFetched * 100 / newUids.Count, emailsFetched, newUids.Count);
+				} catch (Exception e) {
+					Xamarin.Insights.Report (e);
+					Console.WriteLine (e);
+				}
+
+				var newEmails = emails.Select (mail => new Email { 
+					Id = mail.Envelope.MessageId,
+					Subject = mail.Envelope.Subject,
+					From = mail.Envelope.From.ToString (),
+					InReplyTo = mail.Envelope.InReplyTo,
+					Date = (DateTimeOffset)mail.Envelope.Date,
+					To = String.Join (",", mail.Envelope.To)
+				});
+					
+				Database.Main.InsertOrReplaceAll (newEmails);
 			}
-
-			var newEmails = emails.Select (mail => new Email { 
-				Id = mail.Envelope.MessageId,
-				Subject = mail.Envelope.Subject,
-				From = mail.Envelope.From.ToString (),
-				InReplyTo = mail.Envelope.InReplyTo,
-				Date = (DateTimeOffset) mail.Envelope.Date,
-				To = String.Join (",", mail.Envelope.To)
-			});
-				
-			Database.Main.InsertOrReplaceAll (newEmails);
 
 			var newSyncState = new SyncState ();
 			newSyncState.EmailAddress = myEmailAddress;
