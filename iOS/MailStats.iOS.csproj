@@ -108,14 +108,14 @@
     <Reference Include="BouncyCastle">
       <HintPath>..\packages\MimeKit.1.2.8.0\lib\xamarinios10\BouncyCastle.dll</HintPath>
     </Reference>
-    <Reference Include="MimeKit">
-      <HintPath>..\packages\MimeKit.1.2.8.0\lib\xamarinios10\MimeKit.dll</HintPath>
-    </Reference>
     <Reference Include="MailKit">
       <HintPath>..\packages\MailKit.1.2.8.0\lib\xamarinios10\MailKit.dll</HintPath>
     </Reference>
     <Reference Include="SimpleAuth.iOS">
       <HintPath>..\packages\Clancey.SimpleAuth.1.0.2\lib\Xamarin.iOS10\SimpleAuth.iOS.dll</HintPath>
+    </Reference>
+    <Reference Include="MimeKit">
+      <HintPath>..\References\MimeKit.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
