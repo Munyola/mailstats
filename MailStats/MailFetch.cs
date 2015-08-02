@@ -84,7 +84,9 @@ namespace MailStats
 			var emailsFetched = 0;
 			foreach (var sublist in sublists) {
 
-				// FIXME: don't re-fetch UIDs we've already fetched
+				// FIXME: don't re-fetch UIDs we've already fetched; maybe check the database before fetching,
+				// as an added optimization on the syncstate ranges, in case downloads get interrupted halfway
+				// through.
 
 				IList<IMessageSummary> emails = null;
 				try {
@@ -96,17 +98,28 @@ namespace MailStats
 					Xamarin.Insights.Report (e);
 					Console.WriteLine (e);
 				}
+				foreach (var mail in emails) {
+					if (mail == null)
+						Console.WriteLine ("Null mail!");
+					if (mail?.Envelope == null)
+						Console.WriteLine ("Null Envelope!");
+				}
 
-				var newEmails = emails.Select (mail => new Email { 
-					Id = mail.Envelope.MessageId,
-					Subject = mail.Envelope.Subject,
-					From = mail.Envelope.From.ToString (),
-					InReplyTo = mail.Envelope.InReplyTo,
-					Date = (DateTimeOffset)mail.Envelope.Date,
-					To = String.Join (",", mail.Envelope.To)
-				});
-					
-				Database.Main.InsertOrReplaceAll (newEmails);
+				try {
+					var newEmails = emails.Select (mail => new Email { 
+						Id = mail.Envelope.MessageId,
+						Subject = mail.Envelope.Subject,
+						From = mail.Envelope.From.ToString (),
+						InReplyTo = mail.Envelope.InReplyTo,
+						Date = (DateTimeOffset)mail.Envelope.Date,
+						To = String.Join (",", mail.Envelope.To)
+					});
+						
+					Database.Main.InsertOrReplaceAll (newEmails);
+				} catch (Exception e) {
+					Xamarin.Insights.Report (e);
+				}
+			
 			}
 
 			var newSyncState = new SyncState ();

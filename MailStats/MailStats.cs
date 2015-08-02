@@ -300,7 +300,8 @@ namespace MailStats
 					syncingTask = Task.Run (async () => {
 						if (MailFetch.NumEmails () == 0) {
 							model.StatusText = "Fetching 7 days of email...";
-							await MailFetch.FetchNewEmails (Constants.InitialFetchDaysAgo);
+							await MailFetch.FetchNewEmails (Constants.InitialFetchDaysAgo, (percent, emailsFetched, totalEmails) => {
+								model.StatusText = $"Fetched {emailsFetched}/{totalEmails} emails - {percent}%";});
 						}
 
 						model.StatusText = "Computing leaderboard...";
