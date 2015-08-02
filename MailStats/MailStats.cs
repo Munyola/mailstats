@@ -307,7 +307,7 @@ namespace MailStats
 						await RefreshTable();
 						model.StatusText = "Fetching " + Constants.DaysAgo + " days of email..."; // FIXME: not really six months if we've already fetched...
 						await MailFetch.FetchNewEmails (Constants.DaysAgo);
-						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anyhting
+						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anything
 						await RefreshTable ();
 						model.StatusText = "";
 					});
