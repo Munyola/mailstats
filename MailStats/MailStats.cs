@@ -281,7 +281,7 @@ namespace MailStats
 			};
 
 			Content = new StackLayout {
-				VerticalOptions = LayoutOptions.Center,
+				VerticalOptions = LayoutOptions.FillAndExpand,
 				Children = {
 					topLayout,
 					searchBar,

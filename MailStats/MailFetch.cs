@@ -44,35 +44,58 @@ namespace MailStats
 		}
 
 		public delegate void FetchEmailProgressCallback(int percent, int emailsFetched, int totalEmails);
-		
+
+		public class EmailId {
+			public string UniqueId {get; set;} 
+		}
+
 		public static async Task FetchNewEmails (int daysAgo, FetchEmailProgressCallback progressCallback = null)
 		{
 			var myEmailAddress = App.GoogleUser.Email;
+
+			// Determine the range of dates to search in email
 			var fetchStart = DateTime.Now.AddDays (-daysAgo);
 			var fetchEnd = DateTime.Now;
-
-			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
-
-			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60) && syncState.DownloadStart < fetchStart) {
-				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
-				return;
-			} 
-			
-			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
-				fetchStart = syncState.DownloadEnd;
-
-			var start = DateTime.Now;
-			var inbox = GetMailbox ();
 
 			// Make sure we search at least one day to work around a strange behavior where
 			// Google is returning the entire mailbox.
 			if ((fetchEnd - fetchStart).TotalDays < 1)
 				fetchStart = fetchStart.AddDays (-1);
 
-			var query = SearchQuery.DeliveredAfter (fetchStart).And (SearchQuery.DeliveredBefore (fetchEnd));
-			var newUids = inbox.Search (query);
+			// Figure out what date range of emails we already have in the database
+			var syncState = Database.Main.Table<SyncState> ().FirstOrDefault (x => x.EmailAddress == myEmailAddress);
+			if (syncState?.DownloadEnd > DateTime.Now.AddMinutes (-60) && syncState.DownloadStart < fetchStart) {
+				Console.WriteLine ("Email fetch already performed in the last hour; skipping...");
+				return;
+			} 
+			if (fetchStart > syncState?.DownloadStart && fetchStart < syncState?.DownloadEnd)
+				fetchStart = syncState.DownloadEnd;
 
-			Console.WriteLine ("Search got {0} total emails in {1} seconds", newUids.Count, (DateTime.Now - start).TotalSeconds);
+			// Get a list of all email IDs in our database
+			var dbEmailIds = Database.Main.Query<EmailId> ("select UniqueId from Email;");
+			var idHash = new Dictionary<string,bool> ();
+			foreach (var emailId in dbEmailIds)
+				idHash.Add (emailId.UniqueId.ToString (), true);
+			
+			// Log in to IMAP and get a handle to the All Mail folder
+			var start = DateTime.Now;
+			var inbox = GetMailbox ();
+
+			// Fetch a list of all emails to search
+			var query = SearchQuery.DeliveredAfter (fetchStart).And (SearchQuery.DeliveredBefore (fetchEnd));
+			var uids = inbox.Search (query);
+
+			// Remove any IDs that are already present in the database
+			var newUids = new List<UniqueId> ();
+			foreach (var id in uids) {
+				if (idHash.ContainsKey (id.ToString ()) == false)
+					newUids.Add (id);
+			}
+			// FIXME: for some reason this LINQ version doesn't work :-( 
+			// var newUids = uids.Where(id => idHash.ContainsKey(id.ToString ()) == false).ToList();
+
+			Console.WriteLine ("Search got {0} total emails, {1} new emails, in {2} seconds",
+				uids.Count, newUids.Count, (DateTime.Now - start).TotalSeconds);
 
 			// Split the set of emails to grab into chunks of 100 so we can report progress
 			var sublists = newUids
@@ -83,15 +106,6 @@ namespace MailStats
 
 			var emailsFetched = 0;
 			foreach (var sublist in sublists) {
-
-				// FIXME: don't re-fetch UIDs we've already fetched; maybe check the database before fetching,
-				// as an added optimization on the syncstate ranges, in case downloads get interrupted halfway
-				// through.
-				//
-				// The way to do that:
-				// - Grab a list of all UIDs from the database
-				// - sublist = sublist - database_uids
-
 
 				IList<IMessageSummary> emails = null;
 				try {
@@ -113,6 +127,7 @@ namespace MailStats
 				try {
 					var newEmails = emails.Select (mail => new Email { 
 						Id = mail.Envelope.MessageId,
+						UniqueId = mail.UniqueId.ToString (),
 						Subject = mail.Envelope.Subject,
 						From = mail.Envelope.From.ToString (),
 						InReplyTo = mail.Envelope.InReplyTo,

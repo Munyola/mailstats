@@ -32,9 +32,10 @@ namespace MailStats
 	class Email
 	{
 		[PrimaryKey]
-		public string Id {get;set;}
-		public string Subject {get;set;}
-		public string From {get;set;}
+		public string Id {get; set;} // The MessageId from the mail header, used by In-Reply-To
+		public string UniqueId {get; set; } // The IMAP ID
+		public string Subject {get; set;}
+		public string From {get; set;}
 		public string InReplyTo { get; set; }
 		public DateTimeOffset Date { get; set; }	
 		string to;
