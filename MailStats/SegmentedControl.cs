@@ -20,7 +20,7 @@ namespace SegmentedControl
 
 		public string SelectedValue {
 			get{ 
-				if (Children.Count >= SelectedIndex)
+				if (SelectedIndex > Children.Count)
 					return null;
 				return SelectedValue = Children [selectedIndex].Text;; }
 			set {

@@ -240,7 +240,7 @@ namespace MailStats
 					new SegmentedControlOption { Text = "To Me" },
 					new SegmentedControlOption { Text = "From Me" },
 				},
-				SelectedIndex = 0
+				SelectedValue = "To Me"
 			};
 
 			segment.ValueChanged += (object sender, EventArgs e) => {
@@ -260,6 +260,7 @@ namespace MailStats
 
 			var topLayout = new StackLayout {
 				Orientation = StackOrientation.Horizontal,
+				Padding = 5,
 				Children = {
 					segment,
 					indicator,
@@ -304,7 +305,7 @@ namespace MailStats
 
 						model.StatusText = "Computing leaderboard...";
 						await RefreshTable();
-						model.StatusText = "Fetching 6 months of email..."; // FIXME: not really six months if we've already fetched...
+						model.StatusText = "Fetching " + Constants.DaysAgo + " days of email..."; // FIXME: not really six months if we've already fetched...
 						await MailFetch.FetchNewEmails (Constants.DaysAgo);
 						model.StatusText = "Recomputing leaderboard..."; // FIXME no need to recompute if we didn't fetch anyhting
 						await RefreshTable ();
@@ -327,7 +328,7 @@ namespace MailStats
 				emailData.Where (x => x.Value.ReplyTimesCount > 2).Select (x => x.Value).OrderBy (x => x.ReplyTimesAverage).
 				Select(x => new EmailScoreEntry(x, false)).ToList ();
 			model.FromMeScoreboard = 
-				emailData.Where (x => x.Value.MyReplyTimesCount > 2).Select (X => X.Value).OrderBy (X => X.MyReplyTimesAverage).
+				emailData.Where (x => x.Value.MyReplyTimesCount > 2).Select (x => x.Value).OrderBy (x => x.MyReplyTimesAverage).
 				Select(x => new EmailScoreEntry(x, true)).ToList ();
 
 			model.ScoreBoardMaster = model.ToMeScoreboard;

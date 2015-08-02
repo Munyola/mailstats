@@ -11,7 +11,7 @@
 		public static string AccessTokenUrl = "https://accounts.google.com/o/oauth2/token";
 
 		// Settings
-		public static int DaysAgo = 180; // How far to look back at email
+		public static int DaysAgo = 30; // How far to look back at email
 		public static int InitialFetchDaysAgo = 10; // Initial fetch to display some results fast
 	}
 }
