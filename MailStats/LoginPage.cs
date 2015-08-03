@@ -37,9 +37,7 @@ namespace MailStats
 				Insights.Identify(profile.Id, traits);
 
 				App.SuccessfulLoginAction.Invoke ();
-			}
-			catch (TaskCanceledException ex)
-			{
+			} catch (TaskCanceledException ex) {
 				Xamarin.Insights.Report (ex);
 				Console.WriteLine("Canceled");
 			}

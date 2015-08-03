@@ -171,6 +171,7 @@ namespace MailStats
 		public ScoreboardEntryCell ()
 		{
 			var fontSize = 12;
+			IsEnabled = false;
 
 			name = new Label ();
 			name.FontSize = fontSize;
@@ -237,10 +238,6 @@ namespace MailStats
 			};
 
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
-			listView.ItemSelected += (sender, e) => {
-				if (e != null)
-					((ListView) sender).SelectedItem = null;
-			};
 			listView.VerticalOptions = LayoutOptions.FillAndExpand;
 
 			SearchBar searchBar = new SearchBar ();
