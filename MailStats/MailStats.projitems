@@ -9,12 +9,17 @@
     <Import_RootNamespace>MailStats</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)MailStats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MailFetch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Database.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CalcStats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LoginPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainPageViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ScoreboardHeader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ScoreboardEntryCell.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MainPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GoogleUser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
   </ItemGroup>
 </Project>

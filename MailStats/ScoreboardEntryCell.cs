@@ -1,0 +1,70 @@
+using System;
+
+using Xamarin.Forms;
+using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Linq;
+
+using SegmentedControl;
+
+namespace MailStats
+{
+
+	public class ScoreboardEntryCell : ViewCell
+	{
+		
+		protected Label name, email, count, mean, min, max;
+
+		public ScoreboardEntryCell ()
+		{
+			var fontSize = 12;
+			IsEnabled = false;
+
+			name = new Label ();
+			name.FontSize = fontSize;
+			name.SetBinding (Label.TextProperty, "Name");
+
+			// FIXME: Can't figure out how to make this light grey.
+			email = new Label ();
+			email.FontSize = fontSize - 2;
+			email.SetBinding (Label.TextProperty, "EmailAddress");
+
+			count = new Label ();
+			count.FontSize = fontSize;
+			count.XAlign = TextAlignment.End;
+
+			count.SetBinding (Label.TextProperty, "EmailCountString");
+
+			mean = new Label ();
+			mean.FontSize = fontSize;
+			mean.XAlign = TextAlignment.End;
+			mean.SetBinding (Label.TextProperty, "MeanReplyTimeString");
+
+			var grid = new Grid {
+				Padding = new Thickness (5),
+				ColumnDefinitions = {
+					new ColumnDefinition { Width = new GridLength (4, GridUnitType.Star) },
+					new ColumnDefinition { Width = new GridLength (1, GridUnitType.Star) },
+					new ColumnDefinition { Width = new GridLength (2, GridUnitType.Star) }
+				}
+			};
+
+			var stack = new StackLayout {
+				Spacing = 0, 
+				Children = {
+					name,
+					email
+				}
+			};
+
+			grid.Children.Add (stack, 0, 0);
+			grid.Children.Add (count, 1, 0);
+			grid.Children.Add (mean, 2, 0);
+
+			View = grid;
+		}
+	}
+	
+}
