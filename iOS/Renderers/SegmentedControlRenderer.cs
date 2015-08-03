@@ -16,6 +16,9 @@ namespace SegmentedControl.iOS
 		{
 			base.OnElementChanged (e);
 
+			if (e.NewElement == null)
+				return;
+
 			var segmentedControl = new UISegmentedControl ();
 
 			for (var i = 0; i < e.NewElement?.Children.Count; i++) {
@@ -25,6 +28,7 @@ namespace SegmentedControl.iOS
 				var seg = sender as UISegmentedControl;
 				e.NewElement.SelectedIndex = (int)seg.SelectedSegment;
 			};
+
 			e.NewElement.ValueChanged += async (object sender, EventArgs ev) => {
 				var seg = sender as SegmentedControl;
 				segmentedControl.SelectedSegment = seg.SelectedIndex;
