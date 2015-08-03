@@ -332,6 +332,7 @@ namespace MailStats
 							await RefreshTable ();
 						}
 						//model.StatusText = String.Format("{0} emails.", MailFetch.NumEmails ().ToString("N0"));
+						model.StatusText = "";
 					});
 
 				await syncingTask;
