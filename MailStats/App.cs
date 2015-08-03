@@ -54,5 +54,12 @@ namespace MailStats
 			// Handle when your app resumes
 		}
 	}
+
+
+    public class GoogleUser 
+    {
+        public string Email { get; set; }
+        public string AccessToken { get; set; }
+    }
 }
 
