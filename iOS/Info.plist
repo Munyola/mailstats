@@ -5,9 +5,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>MailStats</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.2</string>
-	<key>CFBundleVersion</key>
-	<string>1.2</string>
+	<string>0.3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
@@ -51,5 +49,7 @@
 	<string>LaunchScreen</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.nat.mailstats</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
 </dict>
 </plist>

@@ -32,7 +32,7 @@ namespace MailStats
 				throw;
 			}
 
-			var mailbox =  client.GetFolder ("[Gmail]/All Mail");
+			var mailbox = client.GetFolder (SpecialFolder.All);
 			mailbox.Open (FolderAccess.ReadOnly);
 			return mailbox;
 		}
