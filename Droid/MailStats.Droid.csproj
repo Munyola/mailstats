@@ -56,9 +56,6 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SimpleAuth.Droid">
-      <HintPath>..\packages\Clancey.SimpleAuth.1.0.5\lib\MonoAndroid\SimpleAuth.Droid.dll</HintPath>
-    </Reference>
     <Reference Include="Xamarin.Insights">
       <HintPath>..\packages\Xamarin.Insights.1.10.5\lib\MonoAndroid10\Xamarin.Insights.dll</HintPath>
     </Reference>
@@ -80,6 +77,9 @@
     </Reference>
     <Reference Include="Xamarin.Android.Support.v4">
       <HintPath>..\packages\Xamarin.Android.Support.v4.22.2.1.0\lib\MonoAndroid403\Xamarin.Android.Support.v4.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleAuth.Droid">
+      <HintPath>..\packages\Clancey.SimpleAuth.1.0.6\lib\MonoAndroid\SimpleAuth.Droid.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

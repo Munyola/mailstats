@@ -17,6 +17,8 @@ namespace MailStats.Droid
 		{
 			base.OnCreate (bundle);
 
+			Xamarin.Insights.Initialize("00e2e3fb179d9c7144f599bc619cfb914081d2ea", this);
+
 			global::Xamarin.Forms.Forms.Init (this, bundle);
 
 			LoadApplication (new App ());
