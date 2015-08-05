@@ -15,6 +15,14 @@ namespace MailStats
 
 	public static class MailFetch
 	{
+		public static void ListSubfolders (IMailFolder folder)
+		{
+			Console.WriteLine ("[folder] {0}", folder.Name);
+
+			foreach (var f in folder.GetSubfolders (false))
+				ListSubfolders (f);
+		}
+
 		private static IMailFolder GetMailbox ()
 		{
 			var client = new ImapClient ();
@@ -33,6 +41,10 @@ namespace MailStats
 			}
 
 			var mailbox = client.GetFolder (SpecialFolder.All);
+
+//			foreach (var ns in client.PersonalNamespaces)
+//				ListSubfolders (client.GetFolder (ns));
+
 			mailbox.Open (FolderAccess.ReadOnly);
 			return mailbox;
 		}

@@ -119,11 +119,17 @@
     <Reference Include="MailKit">
       <HintPath>..\packages\MailKit.1.2.8.0\lib\xamarinios10\MailKit.dll</HintPath>
     </Reference>
-    <Reference Include="SimpleAuth.iOS">
-      <HintPath>..\packages\Clancey.SimpleAuth.1.0.2\lib\Xamarin.iOS10\SimpleAuth.iOS.dll</HintPath>
-    </Reference>
     <Reference Include="MimeKit">
       <HintPath>..\References\MimeKit.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleAuth.iOS">
+      <HintPath>..\packages\Clancey.SimpleAuth.1.0.4\lib\Xamarin.iOS10\SimpleAuth.iOS.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleAuth.OnePassword.iOS">
+      <HintPath>..\packages\Clancey.SimpleAuth.OnePassword.1.0.0\lib\Xamarin.iOS10\SimpleAuth.OnePassword.iOS.dll</HintPath>
+    </Reference>
+    <Reference Include="OnePasswordExtension">
+      <HintPath>..\packages\clancey.OnePassword.1.0.2\lib\Xamarin.iOS10\OnePasswordExtension.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

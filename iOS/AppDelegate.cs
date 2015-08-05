@@ -19,6 +19,7 @@ namespace MailStats.iOS
 			Insights.Initialize("00e2e3fb179d9c7144f599bc619cfb914081d2ea");
 
 			global::Xamarin.Forms.Forms.Init ();
+			SimpleAuth.OnePassword.Activate();
 
 			// Code for starting up the Xamarin Test Cloud Agent
 			#if ENABLE_TEST_CLOUD

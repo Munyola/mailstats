@@ -28,6 +28,8 @@ namespace MailStats.Droid
 		{
 			global::Xamarin.Forms.Platform.Resource.String.ApplicationName = global::MailStats.Droid.Resource.String.ApplicationName;
 			global::Xamarin.Forms.Platform.Resource.String.Hello = global::MailStats.Droid.Resource.String.Hello;
+			global::SimpleAuth.Droid.Resource.String.ApplicationName = global::MailStats.Droid.Resource.String.ApplicationName;
+			global::SimpleAuth.Droid.Resource.String.Hello = global::MailStats.Droid.Resource.String.Hello;
 		}
 		
 		public partial class Attribute
