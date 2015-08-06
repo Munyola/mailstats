@@ -29,14 +29,20 @@ namespace MailStats
 		public static Action SuccessfulLoginAction {
 			get {
 				return new Action (() => { 
-					Application.Current.MainPage = new MainPage();
+                    Application.Current.MainPage = new NavigationPage(new MainPage())
+
+                        {
+                            BarTextColor = Color.White,
+                            BarBackgroundColor = Color.FromHex("2196F3")
+                        };
 				});
 			}
 		}
 	
 		public App ()
 		{	
-			MainPage = new LoginPage ();
+            
+            MainPage = new LoginPage ();
 		}
 
 		protected override void OnStart ()

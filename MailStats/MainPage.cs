@@ -18,6 +18,7 @@ namespace MailStats
 
 		public MainPage ()
 		{
+            Title = "Mail Stats";
 			model = new MainPageViewModel ();
 			BindingContext = model;
 
@@ -39,6 +40,7 @@ namespace MailStats
 
 			// FIXME: need the Android renderer
 			var segment = new SegmentedControl.SegmentedControl {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
 				Children = {
 					new SegmentedControlOption { Text = "To Me" },
 					new SegmentedControlOption { Text = "From Me" },
@@ -82,9 +84,9 @@ namespace MailStats
 			};
 
 			// Accommodate iPhone status header
-			this.Padding = new Thickness(0, 
+			/*this.Padding = new Thickness(0, 
 				Device.OnPlatform(20, 0, 0), // iOS, Android, WinPhone
-				0, 0);
+				0, 0);*/
 		}
 
 		protected override void OnAppearing ()

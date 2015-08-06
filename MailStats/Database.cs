@@ -65,8 +65,12 @@ namespace MailStats
 
 	class Locations
 	{
-		public static string BaseDir = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Personal)).ToString();
-		public static readonly string LibDir = Path.Combine(BaseDir, "Library/");
+		#if __IOS__
+        public static string BaseDir = Directory.GetParent(Environment.GetFolderPath(Environment.SpecialFolder.Personal)).ToString();
+        public static readonly string LibDir = Path.Combine(BaseDir, "Library/");
+        #else 
+        public static readonly string LibDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+        #endif
 	}
 }
 
