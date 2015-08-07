@@ -11,9 +11,49 @@ using SegmentedControl;
 
 namespace MailStats
 {
-
 	public class MainPage : ContentPage
 	{
+		class HeaderView : StackLayout
+		{
+			public HeaderView ()
+			{
+				SearchBar searchBar = new SearchBar {
+					HorizontalOptions = LayoutOptions.FillAndExpand,
+					WidthRequest = 10
+				};
+				searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
+
+				var segment = new SegmentedControl.SegmentedControl {
+					Children = {
+						new SegmentedControlOption { Text = "To Me" },
+						new SegmentedControlOption { Text = "From Me" },
+					},
+					SelectedValue = "To Me",
+					VerticalOptions = LayoutOptions.Center
+
+				};
+
+				segment.ValueChanged += (object sender, EventArgs e) => {
+					var model = (MainPageViewModel) BindingContext;
+					var s = (SegmentedControl.SegmentedControl) sender;
+					if (s.SelectedValue == "To Me")
+						model.ScoreBoardMaster = model.ToMeScoreboard;
+					else
+						model.ScoreBoardMaster = model.FromMeScoreboard;
+					model.FilterSort ();
+				};
+
+				Children.Add (new StackLayout {
+					Orientation = StackOrientation.Vertical,
+					Children = {
+						searchBar,
+						new ContentView { Content = segment, Padding = new Thickness (5, 0) }
+					}
+				});
+				Children.Add (new ScoreboardHeader ());
+			}
+		}
+
 		MainPageViewModel model;
 
 		public MainPage ()
@@ -50,47 +90,9 @@ namespace MailStats
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
 			listView.VerticalOptions = LayoutOptions.FillAndExpand;
 
-			SearchBar searchBar = new SearchBar {
-				HorizontalOptions = LayoutOptions.FillAndExpand,
-				BackgroundColor = Color.White,
-				WidthRequest = 10
-			};
-			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
+			listView.HeaderTemplate = new DataTemplate (typeof (HeaderView));
 
-			var segment = new SegmentedControl.SegmentedControl {
-				Children = {
-					new SegmentedControlOption { Text = "To Me" },
-					new SegmentedControlOption { Text = "From Me" },
-				},
-				SelectedValue = "To Me",
-				VerticalOptions = LayoutOptions.Center
-
-			};
-
-			segment.ValueChanged += (object sender, EventArgs e) => {
-				var s = (SegmentedControl.SegmentedControl) sender;
-				if (s.SelectedValue == "To Me")
-					model.ScoreBoardMaster = model.ToMeScoreboard;
-				else
-					model.ScoreBoardMaster = model.FromMeScoreboard;
-				model.FilterSort ();
-			};
-
-			var myContent = new StackLayout {
-				VerticalOptions = LayoutOptions.FillAndExpand,
-				Children = {
-					new StackLayout {
-						Orientation = StackOrientation.Horizontal,
-						Padding = new Thickness(5, 0),
-						Children = {
-							segment,
-							searchBar
-						}
-					},
-					new ScoreboardHeader(),
-					listView
-				}
-			};
+			listView.Header = model;
 
 			var indicator = new ActivityIndicator ();
 			indicator.IsRunning = true;
@@ -120,7 +122,7 @@ namespace MailStats
 
 			};
 
-			grid.Children.Add (myContent, 0, 1, 0, 2);
+			grid.Children.Add (listView, 0, 1, 0, 2);
 			grid.Children.Add (statusLayout, 0, 1, 1, 2);
 
 			Content = grid;
