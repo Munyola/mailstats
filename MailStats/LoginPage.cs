@@ -45,7 +45,7 @@ namespace MailStats
 
 		public LoginPage ()
 		{
-			api = new GoogleApi("google-13", Constants.ClientId, Constants.ClientSecret)
+			api = new GoogleApi("google", Constants.ClientId, Constants.ClientSecret)
 			{
 				Scopes = Constants.Scopes
 			};

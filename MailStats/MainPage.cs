@@ -21,31 +21,50 @@ namespace MailStats
             Title = "Mail Stats";
 			model = new MainPageViewModel ();
 			BindingContext = model;
+			var style = new Style (typeof(Button)) {
+				Setters = {
+					new Setter {
+						Property = Button.HeightRequestProperty,
+						Value = Device.OnPlatform(30, 45, 45)
+					},
+					new Setter {
+						Property = Button.BackgroundColorProperty,
+						Value = Color.White
+					}
+				}
+			};
 
-			var indicator = new ActivityIndicator ();
-			indicator.SetBinding (ActivityIndicator.IsRunningProperty, "IsRunning");
+			Device.OnPlatform(Android: () => BackgroundColor = Color.White);
+
+			Resources = new ResourceDictionary ();
+			Resources.Add (style);
 
 			var template = new DataTemplate (typeof(ScoreboardEntryCell));
 			var listView = new ListView {
 				ItemTemplate = template,
 				RowHeight = 36, 
-				HeaderTemplate = new DataTemplate (typeof(ScoreboardHeader))
+				HeaderTemplate = new DataTemplate (typeof(ScoreboardHeader)),
+				HeightRequest = 10
 			};
 
 			listView.SetBinding (ListView.ItemsSourceProperty, "ScoreBoard");
 			listView.VerticalOptions = LayoutOptions.FillAndExpand;
 
-			SearchBar searchBar = new SearchBar ();
+			SearchBar searchBar = new SearchBar {
+				HorizontalOptions = LayoutOptions.FillAndExpand,
+				BackgroundColor = Color.White,
+				WidthRequest = 10
+			};
 			searchBar.SetBinding (SearchBar.TextProperty, "SearchBarText");
 
-			// FIXME: need the Android renderer
 			var segment = new SegmentedControl.SegmentedControl {
-                HorizontalOptions = LayoutOptions.FillAndExpand,
 				Children = {
 					new SegmentedControlOption { Text = "To Me" },
 					new SegmentedControlOption { Text = "From Me" },
 				},
-				SelectedValue = "To Me"
+				SelectedValue = "To Me",
+				VerticalOptions = LayoutOptions.Center
+
 			};
 
 			segment.ValueChanged += (object sender, EventArgs e) => {
@@ -57,36 +76,54 @@ namespace MailStats
 				model.FilterSort ();
 			};
 
+			var myContent = new StackLayout {
+				VerticalOptions = LayoutOptions.FillAndExpand,
+				Children = {
+					new StackLayout {
+						Orientation = StackOrientation.Horizontal,
+						Padding = new Thickness(5, 0),
+						Children = {
+							segment,
+							searchBar
+						}
+					},
+					new ScoreboardHeader(),
+					listView
+				}
+			};
+
+			var indicator = new ActivityIndicator ();
+			indicator.IsRunning = true;
+
 			var statusLabel = new Label {
 				FontSize = 10,
 				VerticalOptions = LayoutOptions.CenterAndExpand
 			};
 			statusLabel.SetBinding (Label.TextProperty, "StatusText");
 
-			var topLayout = new StackLayout {
+			var statusLayout = new StackLayout {
 				Orientation = StackOrientation.Horizontal,
+				BackgroundColor = Color.White,
 				Padding = 5,
 				Children = {
-					segment,
 					indicator,
 					statusLabel
 				}
 			};
+			statusLayout.SetBinding (StackLayout.IsVisibleProperty, "IsRunning");
 
-			Content = new StackLayout {
-				VerticalOptions = LayoutOptions.FillAndExpand,
-				Children = {
-					topLayout,
-					searchBar,
-					new ScoreboardHeader(),
-					listView
-				}
+			var grid = new Grid {
+				RowDefinitions = {
+					new RowDefinition { Height = new GridLength(1, GridUnitType.Star) },
+					new RowDefinition {	Height = new GridLength(1, GridUnitType.Auto) }
+				},
+
 			};
 
-			// Accommodate iPhone status header
-			/*this.Padding = new Thickness(0, 
-				Device.OnPlatform(20, 0, 0), // iOS, Android, WinPhone
-				0, 0);*/
+			grid.Children.Add (myContent, 0, 1, 0, 2);
+			grid.Children.Add (statusLayout, 0, 1, 1, 2);
+
+			Content = grid;
 		}
 
 		protected override void OnAppearing ()
